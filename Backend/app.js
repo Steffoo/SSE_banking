@@ -5,7 +5,9 @@ const winston = require('winston');
 const app = express();
 
 var frontendDir;
-var logFile = './data/log/server.log';
+const logFile = './data/log/server.log';
+
+const loginRoute = './routes/loginRoute.js';
 
 winston.configure({
 	transports: [
@@ -23,6 +25,7 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 }
 
 app.use(express.static(path.join(__dirname, frontendDir)));
+app.use('/login', loginRoute);
 
 app.set('port', 3000);
 
