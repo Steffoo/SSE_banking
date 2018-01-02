@@ -25,8 +25,13 @@
       height: 30px;
     }
 
-    .login-button {
+    .button-section {
+      display: flex;
+      justify-content: space-between;
 
+      .login-button {
+        width: 120px;
+      }
     }
   }
 

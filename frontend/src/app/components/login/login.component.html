@@ -1,15 +1,18 @@
 <div class="login-box">
   <div class="login-text">Bitte Name eingeben</div>
   <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="onLogIn()" required #nameInput>
-  <input type="password" class="pw-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="onLogIn()" required #pwInput>
-  <button class="login-button" (click)="onLogIn()">login</button>
+  <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="onLogIn()" required #pwInput>
+  <div class="button-section">
+    <button class="login-button" (click)="onRegestry()">Registrieren</button>
+    <button class="login-button" (click)="onLogIn()">Login</button>
+  </div>
 </div>
 
 <div [ngClass]="{'visible': !loggedIn && logInTries > 0}" class="unsuccesful">
-<div [ngClass]="{'visible': showWarning}" class="unsuccesful">
-  <div>Anmeldedaten falsch</div>
-  <div>Bitte erneut eingeben</div>
-  <div>Versuch: {{logInTries}}</div>
-</div>
+  <div [ngClass]="{'visible': showWarning}" class="unsuccesful">
+    <div>Anmeldedaten falsch</div>
+    <div>Bitte erneut eingeben</div>
+    <div>Versuch: {{logInTries}}</div>
+  </div>
 
 
