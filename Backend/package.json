@@ -1,0 +1,18 @@
+{
+  "name": "sse_banking",
+  "version": "1.0.0",
+  "description": "Backend for the SSE Banking app",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js"
+  },
+  "author": "SSE Group 6",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.2",
+    "mysql": "^2.15.0",
+    "path": "^0.12.7",
+    "winston": "^2.4.0"
+  }
+}
