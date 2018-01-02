@@ -1,10 +1,9 @@
 <div class="login-box">
-  <div class="login-text">Bitte Name eingeben</div>
+  <div class="login-text">Bitte melden Sie sich an:</div>
   <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="onLogIn()" required #nameInput>
   <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="onLogIn()" required #pwInput>
   <div class="button-section">
-    <button class="login-button" (click)="onRegestry()">Registrieren</button>
-    <button class="login-button" (click)="onLogIn()">Login</button>
+    <button class="btn-default" (click)="onLogIn()">Login</button>
   </div>
 </div>
 
