@@ -1,5 +1,17 @@
+<div class="row">
+  <div class="col-xs-3"></div>
+  <div class="col-xs-6">
 
-<div>
-  <app-login></app-login>
+      <nav class="navbar">
+              <fa name="usd" size="3x" style="color:green" class="pull-left"></fa>
+              <span class="pull-left">SSE-Banking-App</span>
+
+              <button routerLink="/login" type="button" class="btn btn-default navbar-btn" >Einloggen</button>
+              <button routerLink="/register" type="button" class="btn btn-default navbar-btn">Registrieren</button>
+        </nav>
+    <div>
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+  <div class="col-xs-3"></div>
 </div>
-
