@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import {LoginService} from '../../services/login.service';
+import {Router} from '@angular/router';
 
 
 @Component({
@@ -15,7 +16,7 @@ export class LoginComponent implements OnInit {
   logInTries = 0;
   showWarning: boolean;
 
-  constructor(private loginService: LoginService) {
+  constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
@@ -37,7 +38,8 @@ export class LoginComponent implements OnInit {
   sendCredentials() {
     if (this.userNameInput && this.passwordInput) {
       this.logInTries++;
-      console.log('user', this.loginService.login(this.userNameInput, this.passwordInput));
+      this.loginService.login(this.userNameInput, this.passwordInput);
+      this.router.navigate(['/mainMenu']);
     }
   }
 

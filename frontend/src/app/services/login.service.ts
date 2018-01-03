@@ -19,7 +19,7 @@ export class LoginService {
       name: name,
       password: pw,
     };
-
+    let response;
     // if (this.register) {
     //   this.http.post('http://localhost:3000/register', post).subscribe(_response => {
     //     if (_response && _response.status) {
