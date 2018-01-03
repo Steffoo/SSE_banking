@@ -16,7 +16,7 @@ export class LoginComponent implements OnInit {
   showWarning: boolean;
 
   constructor(private loginService: LoginService) {
-      this.isLoggedIn = false;
+    this.isLoggedIn = false;
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
         this.logInTries = 0;

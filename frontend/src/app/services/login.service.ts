@@ -10,7 +10,9 @@ export class LoginService {
   logged: Subject<boolean> = new Subject();
   user: User;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    this.logged.next(false);
+  }
 
   login(name: string, pw: string) {
     const body = {
