@@ -3,18 +3,16 @@ import {ActivatedRouteSnapshot, CanActivate, CanDeactivate, RouterStateSnapshot}
 import {LoginService} from './login.service';
 
 @Injectable()
-export class RouteGuardService implements CanActivate {
+export class RouteGuardService implements CanActivate, CanDeactivate<boolean> {
 
-  isLoggedIn = false;
-
-  constructor(private loginService: LoginService) {
-    this.loginService.logged.subscribe(_logged => this.isLoggedIn = _logged);
-  }
+  constructor(private loginService: LoginService) {}
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): boolean {
-    return this.isLoggedIn;
+    return this.loginService.getLogStatus();
   }
 
-
+  canDeactivate(component: boolean, currentRoute: ActivatedRouteSnapshot, currentState: RouterStateSnapshot, nextState?: RouterStateSnapshot): boolean {
+    return undefined;
+  }
 
 }

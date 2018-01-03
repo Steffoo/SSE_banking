@@ -8,13 +8,15 @@ export class LoginService {
 
   register: true;
   logged: Subject<boolean> = new Subject();
+  isloggedIn: boolean;
   user: User;
 
   constructor(private http: HttpClient) {
-    this.logged.next(false);
+    // this.logged.next(false);
   }
 
   login(name: string, pw: string) {
+
     const body = {
       name: name,
       password: pw,
@@ -47,7 +49,12 @@ export class LoginService {
     // }
 
     this.logged.next(true);
+    this.isloggedIn = true;
     return response;
+  }
+
+  getLogStatus() {
+    return this.isloggedIn;
   }
 
   disableAccount() {

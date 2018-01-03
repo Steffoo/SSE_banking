@@ -33,7 +33,6 @@ export class LoginComponent implements OnInit {
   ngOnInit() {
     this.userNameInput = 'TaiTabasco';
     this.passwordInput = 'ttt';
-    // this.sendCredentials();
   }
 
   sendCredentials() {
