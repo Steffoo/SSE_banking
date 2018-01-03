@@ -1,1 +1,37 @@
-<a routerLink="/mainMenu" type="button" class="link-button pull-right"><fa name="arrow-left" size="2x"></fa> Zurück</a>
+<a routerLink="/mainMenu" type="button" class="link-button pull-right">
+  <fa name="arrow-left" size="2x"></fa> Zurück</a>
+
+<h3 class="white">Eine Überweisung tätigen:</h3>
+
+<form style="margin-top:50px">
+  <div class="form-group">
+    <label class="white" for="ibanInput">IBAN</label>
+    <input type="text" class="form-control" id="ibanInput" aria-describedby="emailHelp" placeholder="IBAN eingeben">
+    <small id="ibanInputHelp" class="form-text text-muted">Beispiel IBAN: 16732 (5 Ziffern)</small>
+  </div>
+
+  <div>
+    <hr>
+
+    <div class="form-group">
+      <label class="white" for="recipientInput">Name des Empfängers</label>
+      <input class="form-control" id="recipientInput" type="text" disabled>
+    </div>
+
+    <div class="form-group">
+      <label class="white" for="amountInput">Betrag</label>
+      <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben">
+    </div>
+
+    <div class="form-group">
+      <label class="white" for="amountInput">Verwendungszweck</label>
+      <input class="form-control" id="amountInput" type="text" placeholder="Verwendungszweck eingeben">
+    </div>
+
+  </div>
+
+  <br>
+
+  <a type="submit" class="link-button">
+    <fa name="exchange" size="2x"></fa><span style="font-size:18pt"> Überweisen</span></a>
+</form>
