@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import {LoginService} from '../../services/login.service';
 
 
 @Component({
@@ -14,28 +15,30 @@ export class LoginComponent implements OnInit {
   logInTries = 0;
   showWarning: boolean;
 
-  constructor() {
-    // this.loginService.loggedIn.subscribe(_logged => {
-    //   if (_logged) {
-    //     this.logInTries = 0;
-    //   }
-    //   this.isLoggedIn = _logged;
-    //   this.showWarning = !this.isLoggedIn && this.logInTries > 0
-    // });
+  constructor(private loginService: LoginService) {
+      this.isLoggedIn = false;
+    this.loginService.logged.subscribe(_logged => {
+      if (_logged) {
+        this.logInTries = 0;
+      }
+      this.showWarning = !_logged && this.logInTries > 0;
+      if (this.logInTries > 2) {
+        this.loginService.disableAccount();
+      }
+    });
   }
 
   ngOnInit() {
-    // this.userNameInput = 'steffen';
-    // this.passwordInput = 'sss';
-    // this.onLogIn();
+    this.userNameInput = 'TaiTabasco';
+    this.passwordInput = 'ttt';
+    // this.sendCredentials();
   }
 
-  onLogIn() {
-    // if (this.userNameInput && this.passwordInput) {
-    //   this.logInTries++;
-      // const newUser = new User(this.userNameInput, new Date() );
-      // this.loginService.sendCredentials(this.passwordInput);
-    // }
+  sendCredentials() {
+    if (this.userNameInput && this.passwordInput) {
+      this.logInTries++;
+      console.log('user', this.loginService.login(this.userNameInput, this.passwordInput));
+    }
   }
 
 
