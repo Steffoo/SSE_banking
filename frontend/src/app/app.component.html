@@ -4,8 +4,8 @@
     <nav class="navbar">
       <fa routerLink="/home" name="usd" size="3x" class="pull-left money-green"></fa>
       <a routerLink="/home" class="pull-left">SSE-Banking-App</a>
-      <a routerLink="/login" [ngClass]="{'hidden': isLoggedIn}" type="button" class="link-button"><fa name="sign-in" size="2x"></fa> Einloggen</a>
-      <a routerLink="/login" [ngClass]="{'hidden': isLoggedIn}" type="button" class="link-button"><fa name="user-plus" size="2x"></fa> Registrieren</a>
+      <a routerLink="/login" (click)="setRegistration(false)" [ngClass]="{'hidden': isLoggedIn}" type="button" class="link-button"><fa name="sign-in" size="2x"></fa> Einloggen</a>
+      <a routerLink="/login" (click)="setRegistration(true)" [ngClass]="{'hidden': isLoggedIn}" type="button" class="link-button"><fa name="user-plus" size="2x"></fa> Registrieren</a>
       <a (click)="onLogOut()" [ngClass]="{'hidden': !isLoggedIn}" type="button" class="link-button"><fa name="sign-out" size="2x"></fa> Logout</a>
     </nav>
   </div>

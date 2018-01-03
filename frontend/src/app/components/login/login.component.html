@@ -1,9 +1,9 @@
 <div class="login-box">
   <div class="login-text">Bitte melden Sie sich an:</div>
-  <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="onLogIn()" required #nameInput>
-  <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="onLogIn()" required #pwInput>
+  <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="sendCredentials()" required #nameInput>
+  <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="sendCredentials()" required #pwInput>
   <div class="button-section">
-    <button class="btn-default" (click)="sendCredentials()">sende Daten</button>
+    <button class="btn-default" (click)="sendCredentials()">{{loginButtonText}}</button>
   </div>
 </div>
 

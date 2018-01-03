@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {LoginService} from './services/login.service';
 import {HttpClient} from '@angular/common/http';
 import {RouteGuardService} from './services/route-guard.service';
@@ -21,11 +21,12 @@ export class AppComponent implements OnInit {
     this.loginService.logged.subscribe(isLogged => this.isLoggedIn = isLogged);
   }
 
-  getUser() {
-    return this.loginService.user;
+  setRegistration(isRegistration) {
+    this.loginService.setRegistration(isRegistration);
   }
 
   onLogOut() {
     console.log('logout');
+    this.loginService.onLogOut();
   }
 }
