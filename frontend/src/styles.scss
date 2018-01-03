@@ -5,6 +5,30 @@ body, html{
     background-color: #333 !important;
 }
 
+a:hover{
+    color: red !important;
+    text-decoration: none !important;
+}
+
+a:focus{
+    color: red !important;
+    text-decoration: none;
+}
+
 .white{
-    color: white !important;
+    color: #dfdfdf !important;
+}
+
+.grey{
+    color: grey !important;
+}
+
+.money-green{
+    color: #216C2A
+}
+
+.link-button{
+    color: grey;
+    transition: 0.3s;
+    text-decoration: none;
 }
