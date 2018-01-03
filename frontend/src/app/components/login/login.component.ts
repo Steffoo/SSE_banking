@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit {
     this.isLoggedIn = false;
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
+        this.isLoggedIn = _logged;
         this.logInTries = 0;
       }
       this.showWarning = !_logged && this.logInTries > 0;

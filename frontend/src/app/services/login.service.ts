@@ -19,12 +19,21 @@ export class LoginService {
       name: name,
       password: pw,
     };
-    let response;
+
+
+    // only Mock-response
+    let response = {
+      user: new User('666', name, '0815'),
+      sessionId: 'sikerim',
+      stauts: true
+    };
+
     // if (this.register) {
     //   this.http.post('http://localhost:3000/register', post).subscribe(_response => {
     //     if (_response && _response.status) {
     //         this.logged.next(true);
     //         this.user = _response.user;
+    //         let response = _response;
     //       }
     //     });
     // } else {
@@ -32,12 +41,13 @@ export class LoginService {
     //   if (_response && _response.status) {
     //     this.logged.next(true);
     //     this.user = _response.user;
+    //     let response = _response;
     //   }
     // });
     // }
 
     this.logged.next(true);
-    return new User('666', name, '0815');
+    return response;
   }
 
   disableAccount() {

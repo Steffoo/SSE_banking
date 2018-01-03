@@ -7,8 +7,10 @@ import { HomeComponent } from './components/home/home.component';
 import { FormsModule } from '@angular/forms';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import { ROUTES } from './app.routes';
-import {HttpClientModule} from '@angular/common/http';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
+import {RouteGuardService} from './services/route-guard.service';
+import {LoginService} from './services/login.service';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,7 @@ import { MainMenuComponent } from './components/main-menu/main-menu.component';
     RouterModule.forRoot(ROUTES),
     HttpClientModule
   ],
-  providers: [HttpClientModule],
+  providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
