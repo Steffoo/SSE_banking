@@ -4,6 +4,7 @@ import { LoginComponent } from './components/login/login.component';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { HistoryComponent } from './components/history/history.component';
 import { RouteGuardService } from './services/route-guard.service';
+import { TransferComponent } from './components/transfer/transfer.component';
 
 export const ROUTES: Routes = [
 
@@ -11,6 +12,7 @@ export const ROUTES: Routes = [
   { path: 'home', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'mainMenu', component: MainMenuComponent, canActivate: [RouteGuardService] },
-  { path: 'history', component: HistoryComponent } 
+  { path: 'history', component: HistoryComponent },
+  { path: 'transfer', component: TransferComponent }  
   ];
 
