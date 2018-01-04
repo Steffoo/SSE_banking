@@ -58,6 +58,9 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 }
 
 
+/******************/
+/* MISC functions */
+/******************/
 // Creates a secret session-ID with five characters
 function createSecret(){
 	var secret = "";
