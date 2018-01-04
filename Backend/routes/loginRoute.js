@@ -19,7 +19,7 @@ var connection = mysql.createConnection({
 	password: 'sse_rulez'
 });
 
-router.get('/', function(req res){
+router.post('/', function(req res){
 	var resBody = {
 		status: true,
 		session-id: 'abcdf'
