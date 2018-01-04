@@ -5,6 +5,7 @@ const express = require('express');
 const path = require('path');
 const winston = require('winston');
 const cookieSession = require('cookie-session');
+var bodyParser = require('body-parser');
 
 const app = express();
 
@@ -19,27 +20,39 @@ const logFile = './data/log/server.log';
 /****************************/
 /* Account functions routes */
 /****************************/
-const loginRoute = './routes/loginRoute.js';
-const registerRoute = './routes/registerRoute.js';
-const changePassword = '.routes/changePassword.js';
-const lockAccount = './routes/lockAccount.js';
-const deleteAccount = '.routes/deleteAccount.js';
+const loginRoute = require('./routes/loginRoute.js');
+const registerRoute = require('./routes/registerRoute.js');
+const changePassword = require('./routes/changePassword.js');
+const lockAccount = require('./routes/lockAccount.js');
+const deleteAccount = require('./routes/deleteAccount.js');
 
 
 /**************************************************/
 /* Account transfer and movement functions routes */
 /**************************************************/
-const accountMovement = '.routes/accountMovement.js';
-const accountTransfer = '.routes/accountTransfer.js';
+const accountMovement = require('./routes/accountMovement.js');
+const accountTransfer = require('./routes/accountTransfer.js');
 
 
 /******************/
 /* Configurations */
 /******************/
-winston.configure({
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+const levels = { 
+  error: 0, 
+  warn: 1, 
+  info: 2, 
+  verbose: 3, 
+  debug: 4, 
+  silly: 5 
+} 
+
+const logger = winston.createLogger({
 	transports: [
-		new (winston.transports.File)({filename: logFile}),
-		new (winston.transports.Console)({timestamp: true})
+		new winston.transports.File({filename: logFile}),
+		new winston.transports.Console({timestamp: true})
 	]
 });
 
@@ -50,10 +63,18 @@ app.use(cookieSession({
 }));
 
 if(process.env['RUNNING_VIA_DOCKER']) {
-	winston.log('Info', 'Running inside a docker environment');
+	logger.log({
+		level: 'info',
+		message: 'Running inside a docker environment.'
+	});
+
 	frontendDir = './public';
 } else {
-	winston.log('Info', 'Running outside a docker environment');
+	logger.log({
+		level: 'info',
+		message: 'Running outside a docker environment.'
+	});
+
 	frontendDir = '../frontend';
 }
 
@@ -89,5 +110,8 @@ app.use('/register', registerRoute);
 app.set('port', 3000);
 
 app.listen(app.get('port'), function(){
-	winston.log('Info', 'Listening on port ' + app.get('port'));
+	logger.log({
+		level: 'info',
+		message: 'Listening on port ' + app.get('port')
+	});
 })

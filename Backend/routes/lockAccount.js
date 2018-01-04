@@ -43,17 +43,4 @@ var connection = mysql.createConnection({
 	password: 'sse_rulez'
 });
 
-
-/********************/
-/* Request handling */
-/********************/
-router.post('/', function(req, res){
-	var resBody = {
-		status: true,
-	}
-
-	res.send(resBody);
-})
-
-
 module.exports = router;

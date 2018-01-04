@@ -4,6 +4,7 @@
 const express = require('express');
 const winston = require('winston');
 const mysql = require('mysql');
+var bodyParser = require('body-parser');
 
 const router = express.Router();
 
@@ -17,10 +18,22 @@ const logFile = '../data/log/server.log';
 /******************/
 /* Configurations */
 /******************/
-winston.configure({
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: false })); 
+
+const levels = { 
+  error: 0, 
+  warn: 1, 
+  info: 2, 
+  verbose: 3, 
+  debug: 4, 
+  silly: 5 
+} 
+
+const logger = winston.createLogger({
 	transports: [
-		new (winston.transports.File)({filename: logFile}),
-		new (winston.transports.Console)({timestamp: true})
+		new winston.transports.File({filename: logFile}),
+		new winston.transports.Console({timestamp: true})
 	]
 });
 
@@ -34,18 +47,18 @@ var connection = mysql.createConnection({
 /********************/
 /* Request handling */
 /********************/
-router.post('/', function(req res){
+router.post('/', function(req, res){
 	var newAccount = {
-		firstName = req.body.firstName,
-		name = req.body.name,
-		username = req.body.username,
-		address = req.body.address,
-		telephonenumber = req.body.telephonenumber,
-		email = req.body.email,
-		password = req.body.password,
-		balance = req.body.balance,
-		locked = req.body.locked,
-		reasonForLock = req.body.reasonForLock
+		firstName: req.body.firstName,
+		name: req.body.name,
+		username: req.body.username,
+		address: req.body.address,
+		telephonenumber: req.body.telephonenumber,
+		email: req.body.email,
+		password: req.body.password,
+		balance: req.body.balance,
+		locked: req.body.locked,
+		reasonForLock: req.body.reasonForLock
 	}
 
 	sendRequestToDatabase(newAccount);
@@ -74,28 +87,43 @@ function sendRequestToDatabase(newAccount){
 	+ newAccount.password + ',' 
 	+ newAccount.balance + ',' 
 	+ newAccount.locked + ',' 
-	+ newAccount.reasonForLock ');'
+	+ newAccount.reasonForLock + ');'
 
 	var query = inser + values;
 
 	// Open connection and send query to database
 	connection.connect(function(err){
 		if(err){
-			winston.log('Fatal', err);
+			logger.log({
+				level: 'error',
+				message: err
+			});
 			throw err;
 		}
 
-		winston.log('Info', 'Connection established.');
+		logger.log({
+			level: 'info',
+			message: 'Connection established.'
+		});
 
 		connection.query(query, function(err, result, fields) {
 			if(err){
-				winston.log('Fatal', err);
+				logger.log({
+					level: 'error',
+					message: err
+				});
 				throw err;
 			}
 
-			winston.log('Info', 'Query sent to data base.');
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
 
-			winston.log('Info', result);
+			logger.log({
+				level: 'info',
+				message: result
+			});
 		})
 	})
 }
