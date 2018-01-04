@@ -40,7 +40,8 @@ const logger = winston.createLogger({
 var connection = mysql.createConnection({
 	host: 'localhost',
 	user: 'gruppe6',
-	password: 'sse_rulez'
+	password: 'sse_rulez',
+	database: 'sse_banking'
 });
 
 module.exports = router;

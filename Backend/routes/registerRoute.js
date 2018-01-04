@@ -2,9 +2,11 @@
 /* Required modules */
 /********************/
 const express = require('express');
+const fs = require('fs');
 const winston = require('winston');
 const mysql = require('mysql');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
+const CryptoJS = require('crypto-js');
 
 const router = express.Router();
 
@@ -13,6 +15,7 @@ const router = express.Router();
 /* Files */
 /*********/
 const logFile = '../data/log/server.log';
+const secret = '../data/secret/key.txt';
 
 
 /******************/
@@ -40,7 +43,8 @@ const logger = winston.createLogger({
 var connection = mysql.createConnection({
 	host: 'localhost',
 	user: 'gruppe6',
-	password: 'sse_rulez'
+	password: 'sse_rulez',
+	database: 'sse_banking'
 });
 
 
@@ -49,6 +53,7 @@ var connection = mysql.createConnection({
 /********************/
 router.post('/', function(req, res){
 	var newAccount = {
+		iban: req.body.iban,
 		firstName: req.body.firstName,
 		name: req.body.name,
 		username: req.body.username,
@@ -76,20 +81,21 @@ router.post('/', function(req, res){
 /******************/
 // Sends an insert to the database to register a new account
 function sendRequestToDatabase(newAccount){
-	var insert = 'INSERT INTO account (firstName, name, username, address, telephonenumber, email, password, balance, locked, reasonForLock) ';
-	var values = 'VALUES (' 
-	+ newAccount.firstName 
-	+ ',' + newAccount.name 
-	+ ',' + newAccount.username 
-	+ ',' + newAccount.address 
-	+ ',' + newAccount.telephonenumber 
-	+ ',' + newAccount.email + ',' 
-	+ newAccount.password + ',' 
-	+ newAccount.balance + ',' 
-	+ newAccount.locked + ',' 
-	+ newAccount.reasonForLock + ');'
+	var insert = 'INSERT INTO account (iban, firstName, name, username, address, telephonenumber, email, password, balance, locked, reasonForLock) ';
+	var values = 'VALUES ("'
+	+ newAccount.iban 
+	+ '","' + newAccount.firstName 
+	+ '","' + newAccount.name 
+	+ '","' + newAccount.username 
+	+ '","' + newAccount.address 
+	+ '","' + newAccount.telephonenumber 
+	+ '","' + newAccount.email 
+	+ '","' + newAccount.password 
+	+ '",' + newAccount.balance 
+	+ ',' + newAccount.locked 
+	+ ',"' + newAccount.reasonForLock + '");'
 
-	var query = inser + values;
+	var query = insert + values;
 
 	// Open connection and send query to database
 	connection.connect(function(err){
@@ -112,18 +118,17 @@ function sendRequestToDatabase(newAccount){
 					level: 'error',
 					message: err
 				});
-				throw err;
+			} else {
+				logger.log({
+					level: 'info',
+					message: 'Query sent to data base.'
+				});
+
+				logger.log({
+					level: 'info',
+					message: result
+				});
 			}
-
-			logger.log({
-				level: 'info',
-				message: 'Query sent to data base.'
-			});
-
-			logger.log({
-				level: 'info',
-				message: result
-			});
 		})
 	})
 }
