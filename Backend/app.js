@@ -68,14 +68,14 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 		message: 'Running inside a docker environment.'
 	});
 
-	frontendDir = './public';
+	frontendDir = './public/src';
 } else {
 	logger.log({
 		level: 'info',
 		message: 'Running outside a docker environment.'
 	});
 
-	frontendDir = '../frontend';
+	frontendDir = '../frontend/src';
 }
 
 
