@@ -1,3 +1,6 @@
+/********************/
+/* Required modules */
+/********************/
 const express = require('express');
 const path = require('path');
 const winston = require('winston');
@@ -5,12 +8,34 @@ const cookieSession = require('cookie-session');
 
 const app = express();
 
+
+/*********/
+/* Files */
+/*********/
 var frontendDir;
 const logFile = './data/log/server.log';
 
+
+/****************************/
+/* Account functions routes */
+/****************************/
 const loginRoute = './routes/loginRoute.js';
 const registerRoute = './routes/registerRoute.js';
+const changePassword = '.routes/changePassword.js';
+const lockAccount = './routes/lockAccount.js';
+const deleteAccount = '.routes/deleteAccount.js';
 
+
+/**************************************************/
+/* Account transfer and movement functions routes */
+/**************************************************/
+const accountMovement = '.routes/accountMovement.js';
+const accountTransfer = '.routes/accountTransfer.js';
+
+
+/******************/
+/* Configurations */
+/******************/
 winston.configure({
 	transports: [
 		new (winston.transports.File)({filename: logFile}),
@@ -24,6 +49,16 @@ app.use(cookieSession({
 	maxAge: 10 * 60 * 1000 // 10 minutes 
 }));
 
+if(process.env['RUNNING_VIA_DOCKER']) {
+	winston.log('Info', 'Running inside a docker environment');
+	frontendDir = './public';
+} else {
+	winston.log('Info', 'Running outside a docker environment');
+	frontendDir = '../frontend';
+}
+
+
+// Creates a secret session-ID with five characters
 function createSecret(){
 	var secret = "";
 	var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -36,18 +71,18 @@ function createSecret(){
 	return secret;
 }
 
-if(process.env['RUNNING_VIA_DOCKER']) {
-	winston.log('Info', 'Running inside a docker environment');
-	frontendDir = './public';
-} else {
-	winston.log('Info', 'Running outside a docker environment');
-	frontendDir = '../frontend';
-}
 
+/********************/
+/* Request handling */
+/********************/
 app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
 
+
+/************/
+/* Listener */
+/************/
 app.set('port', 3000);
 
 app.listen(app.get('port'), function(){

@@ -1,11 +1,22 @@
+/********************/
+/* Required modules */
+/********************/
 const express = require('express');
 const winston = require('winston');
 const mysql = require('mysql');
 
 const router = express.Router();
 
+
+/*********/
+/* Files */
+/*********/
 const logFile = '../data/log/server.log';
 
+
+/******************/
+/* Configurations */
+/******************/
 winston.configure({
 	transports: [
 		new (winston.transports.File)({filename: logFile}),
@@ -19,10 +30,13 @@ var connection = mysql.createConnection({
 	password: 'sse_rulez'
 });
 
+
+/********************/
+/* Request handling */
+/********************/
 router.post('/', function(req res){
 	var resBody = {
 		status: true,
-		session-id: 'abcdf'
 	}
 
 	res.send(resBody);
