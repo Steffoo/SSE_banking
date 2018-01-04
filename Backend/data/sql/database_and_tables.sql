@@ -1,4 +1,5 @@
-CREATE DATABASE IF NOT EXISTS sse_banking use sse_banking;
+CREATE DATABASE IF NOT EXISTS sse_banking;
+USE sse_banking;
 
 CREATE TABLE IF NOT EXISTS account
                                   ( iban VARCHAR(50) NOT NULL UNIQUE,
@@ -23,4 +24,4 @@ CREATE TABLE IF NOT EXISTS accountmovement (iban_sender VARCHAR(50) NOT NULL,
                                             PRIMARY KEY(iban_sender, iban_recipient),
                                             FOREIGN KEY(iban_sender) REFERENCES account(iban),
                                             FOREIGN KEY(iban_recipient) REFERENCES account(iban)
-                                            )
+                                          );
