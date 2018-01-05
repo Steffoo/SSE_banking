@@ -20,6 +20,12 @@ const secretFile = './data/secret/secret.json';
 const databaseFile = './data/secret/database_info.json';
 
 
+/*********/
+/* Fields*/
+/*********/
+var errorBody = null;
+
+
 /*********************************/
 /* Key and data base information */
 /*********************************/
@@ -157,11 +163,22 @@ router.post('/', function(req, res){
 	        }
 
 	        connection.end(function(err) {
-  				// The connection is terminated now
+  				logger.log({
+					level: 'info',
+					message: 'Data base connection terminated.'
+				});
 			});
 
-	        var resBody = {
-				status: true
+			if(errorBody != null){
+				var resBody = {
+					status: false,
+					code: errorBody.errorCode,
+					message: errorBody.errorMessage
+				}
+			} else {
+				var resBody = {
+					status: true
+				}
 			}
 
 			res.send(resBody);
@@ -197,6 +214,16 @@ function sendRequestToDatabase(newAccount, callback){
 				level: 'error',
 				message: err
 			});
+
+			errorBody = {
+				errorCode: err.code,
+			}
+
+			if(err.sqlMessage.includes('PRIMARY')){
+				errorBody.errorMessage = 'Es existiert ein Konto mit der IBAN-Nummer.';
+			} else if (err.sqlMessage.includes('username')){
+				errorBody.errorMessage = 'Es existiert ein Konto mit dem Benutzernamen.';	
+			}
 		} else {
 			logger.log({
 				level: 'info',
@@ -207,9 +234,9 @@ function sendRequestToDatabase(newAccount, callback){
 				level: 'info',
 				message: result
 			});
-
-			callback();
 		}
+
+		callback();
 	})
 }
 
