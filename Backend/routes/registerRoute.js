@@ -2,11 +2,11 @@
 /* Required modules */
 /********************/
 const express = require('express');
-const fs = require('fs');
+const jsonFile = require('jsonfile');
 const winston = require('winston');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
-const CryptoJS = require('crypto-js');
+const cryptoJS = require('crypto-js');
 
 const router = express.Router();
 
@@ -14,8 +14,16 @@ const router = express.Router();
 /*********/
 /* Files */
 /*********/
-const logFile = '../data/log/server.log';
-const secret = '../data/secret/key.txt';
+const logFile = './data/log/server.log';
+const secret = './data/secret/secret.json';
+const databaseInfo = './data/secret/database_info.json';
+
+
+/*********************************/
+/* Key and data base information */
+/*********************************/
+var aesKey;
+var connection;
 
 
 /******************/
@@ -40,18 +48,62 @@ const logger = winston.createLogger({
 	]
 });
 
-var connection = mysql.createConnection({
-	host: 'localhost',
-	user: 'gruppe6',
-	password: 'sse_rulez',
-	database: 'sse_banking'
-});
+// Reads the secret file
+function readSecretFile(newAccount){
+	jsonFile.readFile(secret, function(err, obj) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		}else{
+			aesKey = obj.passphrase;
+
+			readDatabaseFile(newAccount);
+
+			logger.log({
+				level: 'info',
+				message: 'Successfully read secret file.'
+			});
+		}
+	})
+}
+
+// Reads the data base file
+function readDatabaseFile(newAccount){
+	jsonFile.readFile(databaseInfo, function(err, obj) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		}else{
+			var decrypted = cryptoJS.AES.decrypt(obj.password, aesKey).toString(cryptoJS.enc.Utf8);
+
+			connection = mysql.createConnection({
+				host: obj.host,
+				user: obj.user,
+				password: decrypted,
+				database: obj.database
+			});
+
+			sendRequestToDatabase(newAccount);
+
+			logger.log({
+				level: 'info',
+				message: 'Successfully read data base file.'
+			});
+		}
+	})
+}
 
 
 /********************/
 /* Request handling */
 /********************/
 router.post('/', function(req, res){
+	var encrypted = cryptoJS.AES.encrypt(req.body.password, aesKey);
+
 	var newAccount = {
 		iban: req.body.iban,
 		firstName: req.body.firstName,
@@ -60,13 +112,13 @@ router.post('/', function(req, res){
 		address: req.body.address,
 		telephonenumber: req.body.telephonenumber,
 		email: req.body.email,
-		password: req.body.password,
+		password: encrypted.toString(),
 		balance: req.body.balance,
 		locked: req.body.locked,
 		reasonForLock: req.body.reasonForLock
 	}
 
-	sendRequestToDatabase(newAccount);
+	readSecretFile(newAccount);
 
 	var resBody = {
 		status: true

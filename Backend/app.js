@@ -5,7 +5,9 @@ const express = require('express');
 const path = require('path');
 const winston = require('winston');
 const cookieSession = require('cookie-session');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
+const ip = require('ip');
+const jsonFile = require('jsonfile');
 
 const app = express();
 
@@ -15,6 +17,14 @@ const app = express();
 /*********/
 var frontendDir;
 const logFile = './data/log/server.log';
+const databaseInfo = './data/secret/database_info.json';
+
+
+/**********/
+/* Fields */
+/**********/
+var databaseInformation;
+var ipAddress = ip.address();
 
 
 /****************************/
@@ -56,12 +66,6 @@ const logger = winston.createLogger({
 	]
 });
 
-app.use(cookieSession({
-	name: 'session',
-	secret: createSecret(),
-	maxAge: 10 * 60 * 1000 // 10 minutes 
-}));
-
 if(process.env['RUNNING_VIA_DOCKER']) {
 	logger.log({
 		level: 'info',
@@ -82,17 +86,48 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 /******************/
 /* MISC functions */
 /******************/
-// Creates a secret session-ID with five characters
-function createSecret(){
-	var secret = "";
-	var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+// Reades data bade file
+(function readDataBaseFile(){
+	jsonFile.readFile(databaseInfo, function(err, obj) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		}else{
+			databaseInformation = {
+				user: obj.user,
+				password: obj.password,
+				port: obj.port,
+				database: obj.database,
+				ip: ipAddress
+			}
 
-	for(var i = 0; i < 5; i++){
-		var random = Math.floor(Math.random() * chars.length);
-		secret += chars.charAt(random);
-	}
+			writeToDataBaseFile();
 
-	return secret;
+			logger.log({
+				level: 'info',
+				message: 'Successfully read data base file.'
+			});
+		}
+	})
+})();
+
+// Writes to data base file
+function writeToDataBaseFile(){
+	jsonFile.writeFile(databaseInfo, databaseInformation, function (err) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else {
+			logger.log({
+				level: 'info',
+				message: 'Added current IP address to data base file.'
+			});
+		}
+	})
 }
 
 
