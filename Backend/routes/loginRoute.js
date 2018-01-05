@@ -2,10 +2,12 @@
 /* Required modules */
 /********************/
 const express = require('express');
+const jsonFile = require('jsonfile');
 const winston = require('winston');
 const mysql = require('mysql');
-var bodyParser = require('body-parser');
+const bodyParser = require('body-parser');
 const cryptoJS = require('crypto-js');
+const async = require('async');
 
 const router = express.Router();
 
@@ -13,7 +15,9 @@ const router = express.Router();
 /*********/
 /* Files */
 /*********/
-const logFile = '../data/log/server.log';
+const logFile = './data/log/server.log';
+const secretFile = './data/secret/secret.json';
+const databaseFile = './data/secret/database_info.json';
 
 
 /*********************************/
@@ -46,8 +50,8 @@ const logger = winston.createLogger({
 });
 
 // Reads the secret file
-function readSecretFile(newAccount){
-	jsonFile.readFile(secret, function(err, obj) {
+function readSecretFile(callback){
+	jsonFile.readFile(secretFile, function(err, obj) {
 		if(err){
 			logger.log({
 				level: 'error',
@@ -56,19 +60,19 @@ function readSecretFile(newAccount){
 		}else{
 			aesKey = obj.passphrase;
 
-			readDatabaseFile(newAccount);
-
 			logger.log({
 				level: 'info',
 				message: 'Successfully read secret file.'
 			});
+
+			callback();
 		}
 	})
 }
 
 // Reads the data base file
-function readDatabaseFile(newAccount){
-	jsonFile.readFile(databaseInfo, function(err, obj) {
+function readDatabaseFile(callback){
+	jsonFile.readFile(databaseFile, function(err, obj) {
 		if(err){
 			logger.log({
 				level: 'error',
@@ -77,6 +81,11 @@ function readDatabaseFile(newAccount){
 		}else{
 			var decrypted = cryptoJS.AES.decrypt(obj.password, aesKey).toString(cryptoJS.enc.Utf8);
 
+			logger.log({
+				level: 'info',
+				message: 'Successfully read data base file.'
+			});
+
 			connection = mysql.createConnection({
 				host: obj.host,
 				user: obj.user,
@@ -84,12 +93,23 @@ function readDatabaseFile(newAccount){
 				database: obj.database
 			});
 
-			sendRequestToDatabase(newAccount);
+			// Open connection and send query to database
+			connection.connect(function(err){
+				if(err){
+					logger.log({
+						level: 'error',
+						message: err
+					});
+					throw err;
+				}
 
-			logger.log({
-				level: 'info',
-				message: 'Successfully read data base file.'
+				logger.log({
+					level: 'info',
+					message: 'Connection established.'
+				});
 			});
+
+			callback();
 		}
 	})
 }
@@ -98,25 +118,54 @@ function readDatabaseFile(newAccount){
 /********************/
 /* Request handling */
 /********************/
+var iban;
+var id;
+
 router.post('/', function(req, res){
 	var account = {
 		username: req.body.username,
 		password: req.body.password
 	}
 
-	var success = sendRequestToDatabase(account);
+	async.series([
+        function(callback) {readSecretFile(callback);},
+        function(callback) {readDatabaseFile(callback);},
+        function(callback) {sendRequestToDatabase(account, callback);}
+    ], function(err) {
+        if (err) {
+            logger.log({
+				level: 'error',
+				message: err
+			});
+        }
 
-	if(success === true){
-		establishSession();
-		var id = getSessionID();
-		
-		var resBody = {
-			status: true,
-			sessionID: id
-		}
+        if(iban !== null && iban != undefined){
+        	var id;
 
-		res.send(resBody);
-	}
+        	async.series([
+        		function(callback) {establishSession(iban, callback);},
+        		function(callback) {getSession(iban, callback);}
+        	], function(err){
+        		if (err) {
+            		logger.log({
+						level: 'error',
+						message: err
+					});
+        		}
+
+        		connection.end(function(err) {
+  					// The connection is terminated now
+				});
+
+        		var resBody = {
+					status: true,
+					sessionID: id
+				}
+
+				res.send(resBody);
+        	});
+        }
+    });
 })
 
 
@@ -124,100 +173,70 @@ router.post('/', function(req, res){
 /* MISC functions */
 /******************/
 // Sends an insert to the database to register a new account
-function sendRequestToDatabase(account){
-	var success = false;
-	var select = 'SELECT username, password FROM account ';
+function sendRequestToDatabase(account, callback){
+	var select = 'SELECT username, password, iban FROM account ';
 	var where = 'WHERE username="' + account.username + '";';
 
 	var query = select + where;
 
-	// Open connection and send query to database
-	connection.connect(function(err){
+	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
 				level: 'error',
 				message: err
 			});
-			throw err;
-		}
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
 
-		logger.log({
-			level: 'info',
-			message: 'Connection established.'
-		});
+			logger.log({
+				level: 'info',
+				message: result
+			});
 
-		connection.query(query, function(err, result, fields) {
-			if(err){
-				logger.log({
-					level: 'error',
-					message: err
-				});
-			} else{
-				logger.log({
-					level: 'info',
-					message: 'Query sent to data base.'
-				});
+			var decrypted = cryptoJS.AES.decrypt(result[0].password, aesKey).toString(cryptoJS.enc.Utf8);
 
-				logger.log({
-					level: 'info',
-					message: result
-				});
-
-				if(account.password === result[0].password){
-					success = true;
-				}
+			if(account.password === decrypted){
+				iban = result[0].iban;
+				callback();
 			}
-		})
+		}
 	})
-
-	return success;
 }
 
 // Establishes a session which is stored in the MYSQL-DB
-function establishSession(){
+function establishSession(iban, callback){
 	var date = new Date();
 	var time = date.getTime();
 	var tenMinutesMiliS = 600000;
 	var id = createSessionID();
 
-	var insert = 'INSERT INTO session (id, expirationTime) ';
-	var values = 'VALUES ("'+ id + '",' + (time+tenMinutesMiliS) + ');'
+	var insert = 'INSERT INTO session (sessionId, iban, expirationTime) ';
+	var values = 'VALUES ("'+ id + '","' + iban + '","' + (time+tenMinutesMiliS).toString() + '");'
 
 	var query = insert + values;
 
-	// Open connection and send query to database
-	connection.connect(function(err){
+	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
 				level: 'error',
 				message: err
 			});
-			throw err;
+		} else {
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
 		}
-
-		logger.log({
-			level: 'info',
-			message: 'Connection established.'
-		});
-
-		connection.query(query, function(err, result, fields) {
-			if(err){
-				logger.log({
-					level: 'error',
-					message: err
-				});
-			} else {
-				logger.log({
-					level: 'info',
-					message: 'Query sent to data base.'
-				});
-
-				logger.log({
-					level: 'info',
-					message: result
-				});
-			}
-		})
 	})
 }
 
@@ -232,6 +251,41 @@ function createSessionID(){
 	}
 
 	return secret;
+}
+
+// Gets the sessionID
+function getSession(iban, callback){
+	var date = new Date();
+	var time = date.getTime();
+
+	var select = 'SELECT sessionId, expirationTime FROM session ';
+	var where = 'WHERE iban="' + iban + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(time < parseInt(result[0].expirationTime)){
+				id = result[0].sessionId;
+				callback();
+			}
+		}
+	})
 }
 
 

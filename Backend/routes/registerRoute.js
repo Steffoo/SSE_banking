@@ -7,6 +7,7 @@ const winston = require('winston');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const cryptoJS = require('crypto-js');
+const async = require('async');
 
 const router = express.Router();
 
@@ -15,8 +16,8 @@ const router = express.Router();
 /* Files */
 /*********/
 const logFile = './data/log/server.log';
-const secret = './data/secret/secret.json';
-const databaseInfo = './data/secret/database_info.json';
+const secretFile = './data/secret/secret.json';
+const databaseFile = './data/secret/database_info.json';
 
 
 /*********************************/
@@ -49,8 +50,8 @@ const logger = winston.createLogger({
 });
 
 // Reads the secret file
-function readSecretFile(newAccount){
-	jsonFile.readFile(secret, function(err, obj) {
+function readSecretFile(callback){
+	jsonFile.readFile(secretFile, function(err, obj) {
 		if(err){
 			logger.log({
 				level: 'error',
@@ -59,19 +60,19 @@ function readSecretFile(newAccount){
 		}else{
 			aesKey = obj.passphrase;
 
-			readDatabaseFile(newAccount);
-
 			logger.log({
 				level: 'info',
 				message: 'Successfully read secret file.'
 			});
+
+			callback();
 		}
 	})
 }
 
 // Reads the data base file
-function readDatabaseFile(newAccount){
-	jsonFile.readFile(databaseInfo, function(err, obj) {
+function readDatabaseFile(callback){
+	jsonFile.readFile(databaseFile, function(err, obj) {
 		if(err){
 			logger.log({
 				level: 'error',
@@ -80,6 +81,11 @@ function readDatabaseFile(newAccount){
 		}else{
 			var decrypted = cryptoJS.AES.decrypt(obj.password, aesKey).toString(cryptoJS.enc.Utf8);
 
+			logger.log({
+				level: 'info',
+				message: 'Successfully read data base file.'
+			});
+
 			connection = mysql.createConnection({
 				host: obj.host,
 				user: obj.user,
@@ -87,12 +93,23 @@ function readDatabaseFile(newAccount){
 				database: obj.database
 			});
 
-			sendRequestToDatabase(newAccount);
+			// Open connection and send query to database
+			connection.connect(function(err){
+				if(err){
+					logger.log({
+						level: 'error',
+						message: err
+					});
+					throw err;
+				}
 
-			logger.log({
-				level: 'info',
-				message: 'Successfully read data base file.'
+				logger.log({
+					level: 'info',
+					message: 'Connection established.'
+				});
 			});
+
+			callback();
 		}
 	})
 }
@@ -102,29 +119,54 @@ function readDatabaseFile(newAccount){
 /* Request handling */
 /********************/
 router.post('/', function(req, res){
-	var encrypted = cryptoJS.AES.encrypt(req.body.password, aesKey);
+	async.series([
+        function(callback) {readSecretFile(callback);},
+        function(callback) {readDatabaseFile(callback);}
+    ], function(err) {
+        if (err) {
+            logger.log({
+				level: 'error',
+				message: err
+			});
+        }
 
-	var newAccount = {
-		iban: req.body.iban,
-		firstName: req.body.firstName,
-		name: req.body.name,
-		username: req.body.username,
-		address: req.body.address,
-		telephonenumber: req.body.telephonenumber,
-		email: req.body.email,
-		password: encrypted.toString(),
-		balance: req.body.balance,
-		locked: req.body.locked,
-		reasonForLock: req.body.reasonForLock
-	}
+        var encrypted = cryptoJS.AES.encrypt(req.body.password, aesKey);
 
-	readSecretFile(newAccount);
+		var newAccount = {
+			iban: req.body.iban,
+			firstName: req.body.firstName,
+			name: req.body.name,
+			username: req.body.username,
+			address: req.body.address,
+			telephonenumber: req.body.telephonenumber,
+			email: req.body.email,
+			password: encrypted.toString(),
+			balance: req.body.balance,
+			locked: req.body.locked,
+			reasonForLock: req.body.reasonForLock
+		}
 
-	var resBody = {
-		status: true
-	}
+        async.series([
+        	function(callback) {sendRequestToDatabase(newAccount, callback)}
+        ], function(err) {
+	        if (err) {
+	            logger.log({
+					level: 'error',
+					message: err
+				});
+	        }
 
-	res.send(resBody);
+	        connection.end(function(err) {
+  				// The connection is terminated now
+			});
+
+	        var resBody = {
+				status: true
+			}
+
+			res.send(resBody);
+	    })
+    });
 })
 
 
@@ -132,7 +174,7 @@ router.post('/', function(req, res){
 /* MISC functions */
 /******************/
 // Sends an insert to the database to register a new account
-function sendRequestToDatabase(newAccount){
+function sendRequestToDatabase(newAccount, callback){
 	var insert = 'INSERT INTO account (iban, firstName, name, username, address, telephonenumber, email, password, balance, locked, reasonForLock) ';
 	var values = 'VALUES ("'
 	+ newAccount.iban 
@@ -149,39 +191,25 @@ function sendRequestToDatabase(newAccount){
 
 	var query = insert + values;
 
-	// Open connection and send query to database
-	connection.connect(function(err){
+	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
 				level: 'error',
 				message: err
 			});
-			throw err;
+		} else {
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
 		}
-
-		logger.log({
-			level: 'info',
-			message: 'Connection established.'
-		});
-
-		connection.query(query, function(err, result, fields) {
-			if(err){
-				logger.log({
-					level: 'error',
-					message: err
-				});
-			} else {
-				logger.log({
-					level: 'info',
-					message: 'Query sent to data base.'
-				});
-
-				logger.log({
-					level: 'info',
-					message: result
-				});
-			}
-		})
 	})
 }
 

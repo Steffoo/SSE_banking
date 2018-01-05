@@ -4,7 +4,6 @@
 const express = require('express');
 const path = require('path');
 const winston = require('winston');
-const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 const ip = require('ip');
 const jsonFile = require('jsonfile');
@@ -17,7 +16,7 @@ const app = express();
 /*********/
 var frontendDir;
 const logFile = './data/log/server.log';
-const databaseInfo = './data/secret/database_info.json';
+const databaseFile = './data/secret/database_info.json';
 
 
 /**********/
@@ -88,7 +87,7 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 /******************/
 // Reades data bade file
 (function readDataBaseFile(){
-	jsonFile.readFile(databaseInfo, function(err, obj) {
+	jsonFile.readFile(databaseFile, function(err, obj) {
 		if(err){
 			logger.log({
 				level: 'error',
@@ -115,7 +114,7 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 
 // Writes to data base file
 function writeToDataBaseFile(){
-	jsonFile.writeFile(databaseInfo, databaseInformation, function (err) {
+	jsonFile.writeFile(databaseFile, databaseInformation, function (err) {
 		if(err){
 			logger.log({
 				level: 'error',

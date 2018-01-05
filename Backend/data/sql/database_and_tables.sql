@@ -28,6 +28,6 @@ CREATE TABLE IF NOT EXISTS accountmovement (iban_owner VARCHAR(50) NOT NULL,
 
 CREATE TABLE IF NOT EXISTS session (sessionId VARCHAR(5) NOT NULL UNIQUE,
 									iban VARCHAR(50) NOT NULL, 
-									expirationTime INTEGER NOT NULL, 
+									expirationTime VARCHAR(255) NOT NULL, 
 									PRIMARY KEY(sessionId, iban),
 									FOREIGN KEY(iban) REFERENCES account(iban));
