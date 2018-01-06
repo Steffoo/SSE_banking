@@ -126,12 +126,14 @@ function readDatabaseFile(callback){
 /********************/
 router.get('/', function(req, res){
 	var account = {
-		username: req.body.username,
+		iban: req.boby.iban,
+		session: req.body.sessionId
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
+        function(callback) {getSession(iban, callback);},
         function(callback) {sendRequestToDatabase(, callback);}
     ], function(err) {
         if (err) {
@@ -141,32 +143,16 @@ router.get('/', function(req, res){
 			});
         }
 
-        if(iban !== null && iban != undefined){
-        	var id;
+        connection.end(function(err) {
+  			// The connection is terminated now
+		});
 
-        	async.series([
-        		function(callback) {establishSession(iban, callback);},
-        		function(callback) {getSession(iban, callback);}
-        	], function(err){
-        		if (err) {
-            		logger.log({
-						level: 'error',
-						message: err
-					});
-        		}
+		var resBody = {
+			status: true,
+			sessionID: id
+		}
 
-        		connection.end(function(err) {
-  					// The connection is terminated now
-				});
-
-        		var resBody = {
-					status: true,
-					sessionID: id
-				}
-
-				res.send(resBody);
-        	});
-        }
+		res.send(resBody);
     });
 })
 
@@ -197,75 +183,8 @@ function sendRequestToDatabase(account, callback){
 				level: 'info',
 				message: result
 			});
-
-			var decrypted = cryptoJS.AES.decrypt(result[0].password, aesKey).toString(cryptoJS.enc.Utf8);
-
-			if(account.password === decrypted){
-				iban = result[0].iban;
-				callback();
-			}
 		}
 	})
-}
-
-var tokenExists = false;
-
-// Establishes a session which is stored in the MYSQL-DB
-function establishSession(iban, callback){
-	var date = new Date();
-	var time = date.getTime();
-	var tenMinutesMiliS = 600000;
-	var id = createSessionID();
-
-	async.series([
-		function (callback) {checkForExistingSessions(callback);}
-	], function(err){
-		if (err) {
-            logger.log({
-				level: 'error',
-				message: err
-			});
-        }
-	})
-
-	var insert = 'INSERT INTO session (sessionId, iban, expirationTime) ';
-	var values = 'VALUES ("'+ id + '","' + iban + '","' + (time+tenMinutesMiliS).toString() + '");'
-
-	var query = insert + values;
-
-	connection.query(query, function(err, result, fields) {
-		if(err){
-			logger.log({
-				level: 'error',
-				message: err
-			});
-		} else {
-			logger.log({
-				level: 'info',
-				message: 'Query sent to data base.'
-			});
-
-			logger.log({
-				level: 'info',
-				message: result
-			});
-
-			callback();
-		}
-	})
-}
-
-// Creates a session-ID with five characters
-function createSessionID(){
-	var secret = "";
-	var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-	for(var i = 0; i < 5; i++){
-		var random = Math.floor(Math.random() * chars.length);
-		secret += chars.charAt(random);
-	}
-
-	return secret;
 }
 
 // Gets the sessionID
