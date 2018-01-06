@@ -124,17 +124,17 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-router.get('/', function(req, res){
+router.post('/accountmovement', function(req, res){
 	var account = {
-		iban: req.body.username_owner,
+		username: req.body.username_owner,
 		sessionId: req.body.sessionId
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {getSession(account.username_owner, callback);},
-        function(callback) {sendRequestToDatabase(result, callback);}
+        //function(callback) {getSession(account.username, callback);},
+        function(callback) {sendRequestToDatabase(account, callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -188,12 +188,9 @@ function sendRequestToDatabase(account, callback){
 }
 
 // Gets the sessionID
-function getSession(iban, callback){
-	var date = new Date();
-	var time = date.getTime();
-
-	var select = 'SELECT sessionId, expirationTime FROM session ';
-	var where = 'WHERE iban="' + iban + '";';
+function getSession(user, callback){
+	var select = 'SELECT sessionId FROM sessions ';
+	var where = 'WHERE username="' + user + '";';
 
 	var query = select + where;
 
@@ -203,10 +200,12 @@ function getSession(iban, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Query sent to data base.'
+				message: 'Session recieved.'
 			});
 
 			logger.log({
@@ -214,10 +213,9 @@ function getSession(iban, callback){
 				message: result
 			});
 
-			if(time < parseInt(result[0].expirationTime)){
-				id = result[0].sessionId;
-				callback();
-			}
+			id = result[0].sessionId;
+
+			callback();
 		}
 	})
 }
