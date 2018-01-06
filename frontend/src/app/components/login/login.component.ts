@@ -15,11 +15,9 @@ export class LoginComponent implements OnInit {
   isLoggedIn: boolean;
   logInTries = 0;
   showWarning: boolean;
-  loginButtonText: string;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
-    this.loginButtonText = this.loginService.isRegistration ? 'Registrieren' : 'Einloggen';
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
         this.isLoggedIn = _logged;
@@ -33,6 +31,7 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
+    // todo delete
     this.userNameInput = 'TaiTabasco';
     this.passwordInput = 'ttt';
   }
@@ -41,7 +40,7 @@ export class LoginComponent implements OnInit {
     if (this.userNameInput && this.passwordInput) {
       this.logInTries++;
       let response = this.loginService.login(this.userNameInput, this.passwordInput);
-      console.log('localstorage', localStorage.getItem('session_banking'));
+      // console.log('localstorage', localStorage.getItem('session_banking'));
       this.router.navigate(['/mainMenu']);
     }
   }

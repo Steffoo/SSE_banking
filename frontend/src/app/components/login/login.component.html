@@ -3,7 +3,7 @@
   <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="sendCredentials()" required #nameInput>
   <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="sendCredentials()" required #pwInput>
   <div class="button-section">
-    <button class="btn-default" (click)="sendCredentials()">{{loginButtonText}}</button>
+    <button class="btn-default" (click)="sendCredentials()">Einloggen</button>
   </div>
 </div>
 
@@ -13,5 +13,5 @@
     <div>Bitte erneut eingeben</div>
     <div>Versuch: {{logInTries}}</div>
   </div>
-
+</div>
 

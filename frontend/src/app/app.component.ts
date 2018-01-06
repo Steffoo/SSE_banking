@@ -21,10 +21,6 @@ export class AppComponent implements OnInit {
     this.loginService.logged.subscribe(isLogged => this.isLoggedIn = isLogged);
   }
 
-  setRegistration(isRegistration) {
-    this.loginService.setRegistration(isRegistration);
-  }
-
   onLogOut() {
     console.log('logout');
     this.loginService.onLogOut();

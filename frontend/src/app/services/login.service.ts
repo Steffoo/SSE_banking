@@ -7,17 +7,19 @@ import {Router} from '@angular/router';
 @Injectable()
 export class LoginService {
 
-  isRegistration = true;
   logged: Subject<boolean> = new Subject();
   isloggedIn: boolean;
   user: User;
 
+  //  todo delete, only Mock-response
+  MockResponse = {
+    user: new User('666', name, '0815'),
+    sessionId: '123456',
+    stauts: true
+  };
+
   constructor(private http: HttpClient, private router: Router) {
     // this.logged.next(false);
-  }
-
-  setRegistration(isRegistration: boolean) {
-    this.isRegistration = isRegistration;
   }
 
   login(name: string, pw: string) {
@@ -28,22 +30,6 @@ export class LoginService {
     };
 
 
-    // only Mock-response
-    let response = {
-      user: new User('666', name, '0815'),
-      sessionId: '123456',
-      stauts: true
-    };
-
-    // if (this.register) {
-    //   this.http.post('http://localhost:3000/register', post).subscribe(_response => {
-    //     if (_response && _response.status) {
-    //         this.logged.next(true);
-    //         this.user = _response.user;
-    //         let response = _response;
-    //       }
-    //     });
-    // } else {
     // this.http.post('http://localhost:3000/login', post).subscribe(_response => {
     //   if (_response && _response.status) {
     //     this.logged.next(true);
@@ -53,10 +39,25 @@ export class LoginService {
     // });
     // }
 
-    this.logged.next(true);
-    this.isloggedIn = true;
-    localStorage.setItem('session_banking', response.sessionId);
-    return response;
+    this.confirmLogin();
+  }
+
+  register(userData) {
+    if (userData.isValid) {
+
+      // todo post zu backend
+      // this.http.post('http://localhost:3000/login', post).subscribe(_response => {
+      //   if (_response && _response.status) {
+      //     this.logged.next(true);
+      //     this.user = _response.user;
+      //     let response = _response;
+      //   }
+      // });
+      // }
+
+      this.confirmLogin();
+      return true;
+    }
   }
 
   getLogStatus() {
@@ -70,9 +71,16 @@ export class LoginService {
     console.log('disable Account');
   }
 
+  confirmLogin() {
+    this.isloggedIn = true;
+    this.logged.next(this.isloggedIn);
+    localStorage.setItem('session_banking', this.MockResponse.sessionId);
+    return this.MockResponse;
+  }
+
   onLogOut() {
     this.isloggedIn = false;
-    this.logged.next(false);
+    this.logged.next(this.isloggedIn);
     this.router.navigate(['/home']);
   }
 }

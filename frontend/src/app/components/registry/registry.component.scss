@@ -1,0 +1,48 @@
+:host {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .login-box {
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 10px;
+    //height: 200px;
+
+    width: 300px;
+    font-size: 20px;
+
+    .login-text {
+      color: white;
+    }
+
+    .login-input {
+      color: black;
+      margin-bottom: 5px;
+      height: 30px;
+    }
+
+    .button-section {
+      display: flex;
+      justify-content: space-between;
+
+      .login-button {
+        width: 120px;
+      }
+    }
+  }
+
+  .unsuccesful {
+    color: red;
+    visibility: hidden;
+    text-align: center;
+
+    &.visible {
+      visibility: visible;
+    }
+  }
+}
+
