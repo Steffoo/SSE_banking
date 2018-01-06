@@ -261,8 +261,6 @@ function checkForIbans(callback){
 				message: result
 			});
 
-			console.log(result.length);
-
 			if(result.length === 0){
 				ibanExists = false;
 			}

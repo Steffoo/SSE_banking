@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS accountmovement (movement_id INT NOT NULL auto_increm
                                             FOREIGN KEY(username_recipient) REFERENCES accounts(username)
                                           );
 
-CREATE TABLE IF NOT EXISTS sessions (sessionId VARCHAR(5) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS sessions (sessionId VARCHAR(50) NOT NULL UNIQUE,
 									username VARCHAR(50) NOT NULL,
 									expirationTime VARCHAR(255) NOT NULL,
 									PRIMARY KEY(username),

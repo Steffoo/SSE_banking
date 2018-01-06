@@ -8,6 +8,8 @@ const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const cryptoJS = require('crypto-js');
 const async = require('async');
+var base64 = require('base-64');
+var utf8 = require('utf8');
 
 const router = express.Router();
 
@@ -178,8 +180,8 @@ router.post('/', function(req, res){
         } else {
         	var resBody = {
 				status: false,
-				code: errorBody.code,
-				message: errorBody.message
+				code: errorBody.errorCode,
+				message: errorBody.errorMessage
 			}
 
         	res.send(resBody);
@@ -236,7 +238,7 @@ function sendRequestToDatabase(account, callback){
 	        				}
 
 	        				errorBody = {
-								errorCode: 'Das Passwort in incorrect',
+								errorCode: 'Das Passwort ist nicht korrekt',
 								errorMessage: 'Sie haben noch ' + (result[0].triesLeft-1) + ' Versuche.'
 							}
 
@@ -422,6 +424,7 @@ function checkForExistingSessions(user, callback){
 	})
 } 
 
+// Renew session
 function renewSession(user, sessionTime, callback){
 	var update = 'UPDATE sessions ';
 	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
@@ -456,9 +459,10 @@ function renewSession(user, sessionTime, callback){
 // Creates a new session
 function createNewSession(user, sessionTime, callback){
 	var id = createSessionID();
+	console.log(id);
 
 	var insert = 'INSERT INTO sessions (sessionId, username, expirationTime) ';
-	var values = 'VALUES ("'+ id + '","' + user + '","' + sessionTime.toString() + '");'
+	var values = 'VALUES ("'+ hashSessionId(id) + '","' + user + '","' + sessionTime.toString() + '");'
 
 	var query = insert + values;
 
@@ -497,6 +501,14 @@ function createSessionID(){
 	}
 
 	return secret;
+}
+
+// Hashes a session ID in base64
+function hashSessionId(id){
+	var bytes = utf8.encode(id);
+	var hash = base64.encode(bytes);
+
+	return hash;
 }
 
 // Gets the sessionID
