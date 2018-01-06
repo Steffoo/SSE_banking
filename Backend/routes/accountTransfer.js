@@ -132,7 +132,7 @@ router.get('/', function(req, res){
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {sendRequestToDatabase(, callback);}
+        //function(callback) {sendRequestToDatabase(, callback);}
     ], function(err) {
         if (err) {
             logger.log({

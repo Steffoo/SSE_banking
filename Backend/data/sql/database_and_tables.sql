@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS account
                                     balance DECIMAL(9,2) NOT NULL,
                                     locked BIT DEFAULT 0,
                                     reasonForLock VARCHAR(100),
+									triesLeft INT DEFAULT 3,
                                     PRIMARY KEY(iban)
                                   );
 
@@ -26,8 +27,8 @@ CREATE TABLE IF NOT EXISTS accountmovement (iban_owner VARCHAR(50) NOT NULL,
                                             FOREIGN KEY(iban_recipient) REFERENCES account(iban)
                                           );
 
-CREATE TABLE IF NOT EXISTS session (sessionId VARCHAR(5) NOT NULL UNIQUE,
+CREATE TABLE IF NOT EXISTS sessions (sessionId VARCHAR(5) NOT NULL UNIQUE,
 									iban VARCHAR(50) NOT NULL, 
 									expirationTime VARCHAR(255) NOT NULL, 
-									PRIMARY KEY(sessionId, iban),
+									PRIMARY KEY(iban),
 									FOREIGN KEY(iban) REFERENCES account(iban));
