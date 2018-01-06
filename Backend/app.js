@@ -136,6 +136,7 @@ function writeToDataBaseFile(){
 app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
+app.use('/accountMovement', accountMovement);
 
 
 /************/
