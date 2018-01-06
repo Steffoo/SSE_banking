@@ -170,4 +170,137 @@ router.get('/', function(req, res){
     });
 })
 
+
+/******************/
+/* MISC functions */
+/******************/
+// Sends an insert to the database to register a new account
+function sendRequestToDatabase(account, callback){
+	var select = 'SELECT username, password, iban FROM account ';
+	var where = 'WHERE username="' + account.username + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			var decrypted = cryptoJS.AES.decrypt(result[0].password, aesKey).toString(cryptoJS.enc.Utf8);
+
+			if(account.password === decrypted){
+				iban = result[0].iban;
+				callback();
+			}
+		}
+	})
+}
+
+var tokenExists = false;
+
+// Establishes a session which is stored in the MYSQL-DB
+function establishSession(iban, callback){
+	var date = new Date();
+	var time = date.getTime();
+	var tenMinutesMiliS = 600000;
+	var id = createSessionID();
+
+	async.series([
+		function (callback) {checkForExistingSessions(callback);}
+	], function(err){
+		if (err) {
+            logger.log({
+				level: 'error',
+				message: err
+			});
+        }
+	})
+
+	var insert = 'INSERT INTO session (sessionId, iban, expirationTime) ';
+	var values = 'VALUES ("'+ id + '","' + iban + '","' + (time+tenMinutesMiliS).toString() + '");'
+
+	var query = insert + values;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else {
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
+		}
+	})
+}
+
+// Creates a session-ID with five characters
+function createSessionID(){
+	var secret = "";
+	var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+	for(var i = 0; i < 5; i++){
+		var random = Math.floor(Math.random() * chars.length);
+		secret += chars.charAt(random);
+	}
+
+	return secret;
+}
+
+// Gets the sessionID
+function getSession(iban, callback){
+	var date = new Date();
+	var time = date.getTime();
+
+	var select = 'SELECT sessionId, expirationTime FROM session ';
+	var where = 'WHERE iban="' + iban + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(time < parseInt(result[0].expirationTime)){
+				id = result[0].sessionId;
+				callback();
+			}
+		}
+	})
+}
+
 module.exports = router;
