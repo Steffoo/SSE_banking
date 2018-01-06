@@ -37,16 +37,16 @@ var connection;
 /* Configurations */
 /******************/
 router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false })); 
+router.use(bodyParser.urlencoded({ extended: false }));
 
-const levels = { 
-  error: 0, 
-  warn: 1, 
-  info: 2, 
-  verbose: 3, 
-  debug: 4, 
-  silly: 5 
-} 
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  verbose: 3,
+  debug: 4,
+  silly: 5
+}
 
 const logger = winston.createLogger({
 	transports: [
@@ -126,15 +126,15 @@ function readDatabaseFile(callback){
 /********************/
 router.get('/', function(req, res){
 	var account = {
-		iban: req.boby.iban,
+		iban: req.body.username_owner,
 		sessionId: req.body.sessionId
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {getSession(iban, callback);},
-        function(callback) {sendRequestToDatabase(, callback);}
+        function(callback) {getSession(account.username_owner, callback);},
+        function(callback) {sendRequestToDatabase(result, callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -162,8 +162,8 @@ router.get('/', function(req, res){
 /******************/
 // Sends an insert to the database to register a new account
 function sendRequestToDatabase(account, callback){
-	var select = 'SELECT username, password, iban FROM account ';
-	var where = 'WHERE username="' + account.username + '";';
+  var select = 'SELECT movementDate, username_owner, username_recipient, amount FROM accountmovement';
+	var where = 'WHERE username_owner = "' + account.username + '" OR username_recipient = "' + account.username + '";';
 
 	var query = select + where;
 
