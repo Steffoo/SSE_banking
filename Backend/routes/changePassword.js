@@ -24,6 +24,7 @@ const databaseFile = './data/secret/database_info.json';
 /* Fields*/
 /*********/
 var errorBody = null;
+var info = null;
 
 
 /*********************************/
@@ -124,12 +125,18 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
+var id;
+var pwdCorrect;
+
 router.post('/', function(req, res){
+	pwdCorrect = false;
+	info = null;
+
 	var account = {
 		username: req.body.username,
-     	pwd: req.body.oldpassword,
+     	pwd: req.body.oldPassword,
 		newPassword: req.body.newPassword,
-     	sessionId: req.sessionId,
+     	sessionId: req.body.sessionId,
 	}
 
 	async.series([
@@ -138,7 +145,14 @@ router.post('/', function(req, res){
         function(callback) {getSession(account.username, callback);},
         function(callback) {
         	if(errorBody === null){
-        		sendRequestToDatabase(account.usernameToDelete, callback);
+        		checkPassword(account.username, account.pwd, callback);
+        	} else {
+        		callback();
+        	}
+        },
+        function(callback) {
+        	if(errorBody === null){
+        		sendRequestToDatabase(account.username, account.newPassword, callback);
         	} else {
         		callback();
         	}
@@ -277,12 +291,11 @@ function increaseExpirationTime(username, callback){
 	})
 }
 
-// Send request to database
-function sendRequestToDatabase(username, callback){
-	var deleteFrom = 'DELETE FROM accounts ';
+function checkPassword(username, pwd, callback){
+	var select = 'SELECT pwd FROM accounts ';
 	var where = 'WHERE username="' + username + '";';
 
-	var query = deleteFrom + where;
+	var query = select + where;
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -295,7 +308,7 @@ function sendRequestToDatabase(username, callback){
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Row deleted.'
+				message: 'Query sent.'
 			});
 
 			logger.log({
@@ -303,9 +316,50 @@ function sendRequestToDatabase(username, callback){
 				message: result
 			});
 
-			if (result.affectedRows === 0){
-				info = 'Es gibt keinen Benutzer mit diesem Usernamen.';
+			var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
+
+			if(decrypted === pwd){
+				pwdCorrect = true;
+				callback();
+			} else {
+				errorBody = {
+					errorCode: 'Falsches altes Passwort',
+					errorMessage: 'Ihr angegebenes Passwort stimmt nicht mit ihrem alten Passwort überein.'
+				}
+				callback();
 			}
+		}
+	})
+}
+
+// Send request to database
+function sendRequestToDatabase(username, newPassword, callback){
+	var encrypted = cryptoJS.AES.encrypt(newPassword, aesKey);
+
+	var update = 'Update accounts ';
+	var set = 'SET pwd = "' + encrypted + '" ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = update + set + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Row updated.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
 
 			callback();
 		}

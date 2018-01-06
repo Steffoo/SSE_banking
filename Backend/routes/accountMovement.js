@@ -124,7 +124,7 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-
+var id;
 var content;
 
 router.post('/', function(req, res){
