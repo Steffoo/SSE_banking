@@ -124,15 +124,20 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-router.get('/', function(req, res){
+router.post('/', function(req, res){
 	var account = {
-		username: req.body.username,
+		username: req.username,
+     	pwd: req.password,
+		usernameToDelete: req.usernameToDelete,
+     	sessionId: req.sessionId,
+     	delete: true
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        //function(callback) {sendRequestToDatabase(, callback);}
+        function(callback) {getSession(account.username_owner, callback);},
+        function(callback) {sendRequestToDatabase(result, callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -141,32 +146,19 @@ router.get('/', function(req, res){
 			});
         }
 
-        if(iban !== null && iban != undefined){
-        	var id;
+        connection.end(function(err) {
+  			logger.log({
+				level: 'info',
+				message: 'Data base connection terminated.'
+			});
+		});
 
-        	async.series([
-        		function(callback) {establishSession(iban, callback);},
-        		function(callback) {getSession(iban, callback);}
-        	], function(err){
-        		if (err) {
-            		logger.log({
-						level: 'error',
-						message: err
-					});
-        		}
+		var resBody = {
+			status: true,
+			sessionID: id
+		}
 
-        		connection.end(function(err) {
-  					// The connection is terminated now
-				});
-
-        		var resBody = {
-					status: true,
-					sessionID: id
-				}
-
-				res.send(resBody);
-        	});
-        }
+		res.send(resBody);
     });
 })
 

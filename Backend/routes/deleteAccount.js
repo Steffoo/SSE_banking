@@ -124,6 +124,8 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
+var id;
+
 router.post('/', function(req, res){
 	var account = {
 		username: req.username,
@@ -136,7 +138,14 @@ router.post('/', function(req, res){
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        //function(callback) {sendRequestToDatabase(, callback);}
+        function(callback) {getSession(account.username, callback);},
+        function(callback) {
+        	if(errorBody === null){
+        		sendRequestToDatabase(result, callback);
+        	} else {
+        		callback();
+        	}
+        }
     ], function(err) {
         if (err) {
             logger.log({
@@ -145,33 +154,123 @@ router.post('/', function(req, res){
 			});
         }
 
-        if(iban !== null && iban != undefined){
-        	var id;
+        connection.end(function(err) {
+  			logger.log({
+				level: 'info',
+				message: 'Data base connection terminated.'
+			});
+		});
 
-        	async.series([
-        		function(callback) {establishSession(iban, callback);},
-        		function(callback) {getSession(iban, callback);}
-        	], function(err){
-        		if (err) {
-            		logger.log({
-						level: 'error',
-						message: err
-					});
-        		}
+		if(errorBody === null){
+			var resBody = {
+				status: true,
+				sessionID: id
+			}
 
-        		connection.end(function(err) {
-  					// The connection is terminated now
-				});
+			res.send(resBody);
+		} else {
+			var resBody = {
+				status: false,
+				code: errorBody.errorCode,
+				message: errorBody.errorMessage
+			}
 
-        		var resBody = {
-					status: true,
-					sessionID: id
-				}
-
-				res.send(resBody);
-        	});
-        }
+			res.send(resBody);
+		}
     });
 })
+
+// Gets the sessionID
+function getSession(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+
+	var select = 'SELECT sessionId, expirationTime FROM session ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(time <= parseInt(result[0].expirationTime)){
+				async.series([
+					function(callback) {increaseExpirationTime(result[0].username, callback);}
+				], function(err){
+					if (err) {
+			            logger.log({
+							level: 'error',
+							message: err
+						});
+			        }
+
+			        id = result[0].sessionId;
+					callback();
+				})
+			} else {
+				errorBody = {
+					errorCode: err.code,
+					errorMessage: 'Session ist abgelaufen.'
+				}
+
+				callback();
+			}
+		}
+	})
+}
+
+// Increases the expiration time of a session
+function increaseExpirationTime(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+	var tenMinutesMiliS = 600000;
+	var sessionTime = time+tenMinutesMiliS;
+
+	var update = 'UPDATE sessions ';
+	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = update + set + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Session renewed.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
+		}
+	})
+}
+
 
 module.exports = router;
