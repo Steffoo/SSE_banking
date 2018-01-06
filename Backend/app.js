@@ -31,16 +31,16 @@ var ipAddress = ip.address();
 /****************************/
 const loginRoute = require('./routes/loginRoute.js');
 const registerRoute = require('./routes/registerRoute.js');
-const changePassword = require('./routes/changePassword.js');
-const lockAccount = require('./routes/lockAccount.js');
-const deleteAccount = require('./routes/deleteAccount.js');
+const changePasswordRoute = require('./routes/changePassword.js');
+const lockAccountRoute = require('./routes/lockAccount.js');
+const deleteAccountRoute = require('./routes/deleteAccount.js');
 
 
 /**************************************************/
 /* Account transfer and movement functions routes */
 /**************************************************/
-const accountMovement = require('./routes/accountMovement.js');
-const accountTransfer = require('./routes/accountTransfer.js');
+const accountMovementRoute = require('./routes/accountMovement.js');
+const accountTransferRoute = require('./routes/accountTransfer.js');
 
 
 /******************/
@@ -136,7 +136,8 @@ function writeToDataBaseFile(){
 app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
-app.use('/accountMovement', accountMovement);
+app.use('/deleteAccount', deleteAccountRoute);
+app.use('/accountMovement', accountMovementRoute);
 
 
 /************/

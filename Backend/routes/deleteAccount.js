@@ -24,6 +24,7 @@ const databaseFile = './data/secret/database_info.json';
 /* Fields*/
 /*********/
 var errorBody = null;
+var info = null;
 
 
 /*********************************/
@@ -125,14 +126,17 @@ function readDatabaseFile(callback){
 /* Request handling */
 /********************/
 var id;
+var isAdmin;
 
 router.post('/', function(req, res){
+	isAdmin = false;
+	info = null;
+
 	var account = {
-		username: req.username,
-     	pwd: req.password,
-		usernameToDelete: req.usernameToDelete,
-     	sessionId: req.sessionId,
-     	delete: true
+		username: req.body.username,
+     	pwd: req.body.password,
+		usernameToDelete: req.body.usernameToDelete,
+     	sessionId: req.body.sessionId,
 	}
 
 	async.series([
@@ -141,7 +145,21 @@ router.post('/', function(req, res){
         function(callback) {getSession(account.username, callback);},
         function(callback) {
         	if(errorBody === null){
-        		sendRequestToDatabase(result, callback);
+        		checkIfAdmin(account.username, callback);
+        	} else {
+        		callback();
+        	}
+        },
+        function(callback) {
+        	if(errorBody === null){
+        		checkIfAdminDeleteAdmin(account.username, account.usernameToDelete, callback);
+        	} else {
+        		callback();
+        	}
+        },
+        function(callback) {
+        	if(errorBody === null){
+        		sendRequestToDatabase(account.usernameToDelete, callback);
         	} else {
         		callback();
         	}
@@ -161,18 +179,26 @@ router.post('/', function(req, res){
 			});
 		});
 
-		if(errorBody === null){
+		if(errorBody === null && info === null){
 			var resBody = {
 				status: true,
 				sessionID: id
 			}
 
 			res.send(resBody);
-		} else {
+		} else if(errorBody != null && info === null){
 			var resBody = {
 				status: false,
 				code: errorBody.errorCode,
 				message: errorBody.errorMessage
+			}
+
+			res.send(resBody);
+		} else if(errorBody === null && info != null){
+			var resBody = {
+				status: true,
+				message: info,
+				sessionID: id
 			}
 
 			res.send(resBody);
@@ -185,7 +211,7 @@ function getSession(username, callback){
 	var date = new Date();
 	var time = date.getTime();
 
-	var select = 'SELECT sessionId, expirationTime FROM session ';
+	var select = 'SELECT sessionId, expirationTime FROM sessions ';
 	var where = 'WHERE username="' + username + '";';
 
 	var query = select + where;
@@ -201,7 +227,7 @@ function getSession(username, callback){
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Query sent to data base.'
+				message: 'Session recieved.'
 			});
 
 			logger.log({
@@ -211,7 +237,7 @@ function getSession(username, callback){
 
 			if(time <= parseInt(result[0].expirationTime)){
 				async.series([
-					function(callback) {increaseExpirationTime(result[0].username, callback);}
+					function(callback) {increaseExpirationTime(username, callback);}
 				], function(err){
 					if (err) {
 			            logger.log({
@@ -225,7 +251,7 @@ function getSession(username, callback){
 				})
 			} else {
 				errorBody = {
-					errorCode: err.code,
+					errorCode: 'Schlechte Session',
 					errorMessage: 'Session ist abgelaufen.'
 				}
 
@@ -259,13 +285,99 @@ function increaseExpirationTime(username, callback){
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Session renewed.'
+				message: 'Session time increased.'
 			});
 
 			logger.log({
 				level: 'info',
 				message: result
 			});
+
+			callback();
+		}
+	})
+}
+
+// Checks if requestor is an admin
+function checkIfAdmin(username, callback){
+	var select = 'SELECT isAdmin FROM accounts ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(result[0].isAdmin === 1){
+				isAdmin = true;
+				callback();
+			} else {
+				errorBody = {
+					errorCode: 'Keine Adminrechte',
+					errorMessage: 'Sie haben keine Adminrechte.'
+				}
+				callback();
+			}
+		}
+	})
+}
+
+// Check if admin is trying to delete himself
+function checkIfAdminDeleteAdmin(username, usernameToDelete, callback){
+	if(username === usernameToDelete){
+		errorBody = {
+			errorCode: 'Netter Versuch',
+			errorMessage: 'Sie können sich nicht selbst löschen.'
+		}
+	}
+	callback();
+}
+
+// Send request to database
+function sendRequestToDatabase(username, callback){
+	var deleteFrom = 'DELETE FROM accounts ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = deleteFrom + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Row deleted.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if (result.affectedRows === 0){
+				info = 'Es gibt keinen Benutzer mit diesem Usernamen.';
+			}
 
 			callback();
 		}
