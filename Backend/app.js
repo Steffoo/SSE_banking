@@ -136,8 +136,11 @@ function writeToDataBaseFile(){
 app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
+app.use('/changePassword', changePasswordRoute);
 app.use('/deleteAccount', deleteAccountRoute);
+app.use('/accountTransfer', accountTransferRoute);
 app.use('/accountMovement', accountMovementRoute);
+
 
 
 /************/

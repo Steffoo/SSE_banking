@@ -126,18 +126,23 @@ function readDatabaseFile(callback){
 /********************/
 router.post('/', function(req, res){
 	var account = {
-		username: req.username,
-     	pwd: req.password,
-		usernameToDelete: req.usernameToDelete,
+		username: req.body.username,
+     	pwd: req.body.oldpassword,
+		newPassword: req.body.newPassword,
      	sessionId: req.sessionId,
-     	delete: true
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {getSession(account.username_owner, callback);},
-        function(callback) {sendRequestToDatabase(result, callback);}
+        function(callback) {getSession(account.username, callback);},
+        function(callback) {
+        	if(errorBody === null){
+        		sendRequestToDatabase(account.usernameToDelete, callback);
+        	} else {
+        		callback();
+        	}
+        }
     ], function(err) {
         if (err) {
             logger.log({
@@ -153,13 +158,159 @@ router.post('/', function(req, res){
 			});
 		});
 
-		var resBody = {
-			status: true,
-			sessionID: id
-		}
+		if(errorBody === null && info === null){
+			var resBody = {
+				status: true,
+				sessionID: id
+			}
 
-		res.send(resBody);
+			res.send(resBody);
+		} else if(errorBody != null && info === null){
+			var resBody = {
+				status: false,
+				code: errorBody.errorCode,
+				message: errorBody.errorMessage
+			}
+
+			res.send(resBody);
+		} else if(errorBody === null && info != null){
+			var resBody = {
+				status: true,
+				message: info,
+				sessionID: id
+			}
+
+			res.send(resBody);
+		}
     });
 })
+
+// Gets the sessionID
+function getSession(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+
+	var select = 'SELECT sessionId, expirationTime FROM sessions ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Session recieved.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(time <= parseInt(result[0].expirationTime)){
+				async.series([
+					function(callback) {increaseExpirationTime(username, callback);}
+				], function(err){
+					if (err) {
+			            logger.log({
+							level: 'error',
+							message: err
+						});
+			        }
+
+			        id = result[0].sessionId;
+					callback();
+				})
+			} else {
+				errorBody = {
+					errorCode: 'Schlechte Session',
+					errorMessage: 'Session ist abgelaufen.'
+				}
+
+				callback();
+			}
+		}
+	})
+}
+
+// Increases the expiration time of a session
+function increaseExpirationTime(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+	var tenMinutesMiliS = 600000;
+	var sessionTime = time+tenMinutesMiliS;
+
+	var update = 'UPDATE sessions ';
+	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = update + set + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Session time increased.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
+		}
+	})
+}
+
+// Send request to database
+function sendRequestToDatabase(username, callback){
+	var deleteFrom = 'DELETE FROM accounts ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = deleteFrom + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Row deleted.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if (result.affectedRows === 0){
+				info = 'Es gibt keinen Benutzer mit diesem Usernamen.';
+			}
+
+			callback();
+		}
+	})
+}
+
 
 module.exports = router;
