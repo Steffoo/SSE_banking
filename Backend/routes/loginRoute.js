@@ -20,6 +20,12 @@ const secretFile = './data/secret/secret.json';
 const databaseFile = './data/secret/database_info.json';
 
 
+/*********/
+/* Fields*/
+/*********/
+var errorBody = null;
+
+
 /*********************************/
 /* Key and data base information */
 /*********************************/
@@ -206,12 +212,25 @@ function sendRequestToDatabase(account, callback){
 	})
 }
 
+var tokenExists = false;
+
 // Establishes a session which is stored in the MYSQL-DB
 function establishSession(iban, callback){
 	var date = new Date();
 	var time = date.getTime();
 	var tenMinutesMiliS = 600000;
 	var id = createSessionID();
+
+	async.series([
+		function (callback) {checkForExistingSessions(callback);}
+	], function(err){
+		if (err) {
+            logger.log({
+				level: 'error',
+				message: err
+			});
+        }
+	})
 
 	var insert = 'INSERT INTO session (sessionId, iban, expirationTime) ';
 	var values = 'VALUES ("'+ id + '","' + iban + '","' + (time+tenMinutesMiliS).toString() + '");'
