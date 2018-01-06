@@ -124,9 +124,13 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-router.get('/', function(req, res){
+router.post('/', function(req, res){
 	var account = {
-		username: req.body.username,
+		username: req.username,
+     	pwd: req.password,
+		usernameToDelete: req.usernameToDelete,
+     	sessionId: req.sessionId,
+     	delete: true
 	}
 
 	async.series([

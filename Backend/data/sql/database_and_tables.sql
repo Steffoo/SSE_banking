@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS accounts
                                     locked BOOL DEFAULT FALSE,
                                     reasonForLock VARCHAR(100),
 									triesLeft INT DEFAULT 3,
+                                    isAdmin BOOL DEFAULT FALSE,
                                     PRIMARY KEY(iban)
                                   );
 
