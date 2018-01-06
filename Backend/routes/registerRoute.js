@@ -124,13 +124,15 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-var iban = "DE"; 
+var iban; 
 
 router.post('/', function(req, res){
+	errorBody = null; 
+
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {createIban(callback);}
+        function(callback) {createNewIban(callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -142,31 +144,31 @@ router.post('/', function(req, res){
         var encrypted = cryptoJS.AES.encrypt(req.body.password, aesKey);
 
 		var newAccount = {
-			iban: req.body.iban,
+			iban: iban,
 			firstName: req.body.firstName,
-			name: req.body.name,
+			lastName: req.body.name,
 			username: req.body.username,
 			address: req.body.address,
 			telephonenumber: req.body.telephonenumber,
 			email: req.body.email,
-			password: encrypted.toString(),
+			pwd: encrypted.toString(),
 			balance: req.body.balance,
-			locked: req.body.locked,
-			reasonForLock: req.body.reasonForLock
+			locked: 0,
+			reasonForLock: null
 		}
 
-        async.series([
-        	function(callback) {sendRequestToDatabase(newAccount, callback)}
-        ], function(err) {
-	        if (err) {
-	            logger.log({
+	    async.series([
+	       	function(callback) {sendRequestToDatabase(newAccount, callback)}
+	    ], function(err) {
+		    if (err) {
+		        logger.log({
 					level: 'error',
 					message: err
 				});
-	        }
+		    }
 
-	        connection.end(function(err) {
-  				logger.log({
+		    connection.end(function(err) {
+	  			logger.log({
 					level: 'info',
 					message: 'Data base connection terminated.'
 				});
@@ -178,14 +180,16 @@ router.post('/', function(req, res){
 					code: errorBody.errorCode,
 					message: errorBody.errorMessage
 				}
+
+				res.send(resBody);
 			} else {
 				var resBody = {
 					status: true
 				}
-			}
 
-			res.send(resBody);
-	    })
+				res.send(resBody);
+			}
+		})
     });
 })
 
@@ -193,27 +197,32 @@ router.post('/', function(req, res){
 /******************/
 /* MISC functions */
 /******************/
-ibanExists = true;
+var ibanExists;
 
 // Creates an IBAN-Number
 function createNewIban(callback){
-	while(ibanExists === true){
-		async.series([
-			function(callback) {generateIban(callback);},
-			function(callback) {checkForIbans(iban, callback);}
-		], function (err){
-			if (err) {
-		        logger.log({
-					level: 'error',
-					message: err
-				});
-		    }
-		})
-	}
+	ibanExists = true;
+
+	async.series([
+		function(callback) {generateIban(callback);},
+		function(callback) {checkForIbans(callback);}
+	], function (err){
+		if (err) {
+	        logger.log({
+				level: 'error',
+				message: err
+			});
+	    }
+
+	    if(ibanExists === false){
+			callback();
+		}
+	})
 }
 
 // Generates a random iban number
 function generateIban(callback){
+	iban  = "DE";
 	var chars = "0123456789";
 
 	for(var i = 0; i < 20; i++){
@@ -227,8 +236,8 @@ function generateIban(callback){
 }
 
 // Checks for already existing iban numbers
-function checkForIbans(iban, callback){
-	var select = 'SELECT iban FROM account ';
+function checkForIbans(callback){
+	var select = 'SELECT username FROM accounts ';
 	var where = 'WHERE iban="' + iban + '";';
 
 	var query = select + where;
@@ -239,6 +248,8 @@ function checkForIbans(iban, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
@@ -250,27 +261,29 @@ function checkForIbans(iban, callback){
 				message: result
 			});
 
-			if(result === null || result === undefined){
+			console.log(result.length);
+
+			if(result.length === 0){
 				ibanExists = false;
 			}
-		}
 
-		callback();
+			callback();
+		}
 	})
 }
 
 // Sends an insert to the database to register a new account
 function sendRequestToDatabase(newAccount, callback){
-	var insert = 'INSERT INTO account (iban, firstName, name, username, address, telephonenumber, email, password, balance, locked, reasonForLock) ';
+	var insert = 'INSERT INTO accounts (iban, firstName, lastName, username, address, telephonenumber, email, pwd, balance, locked, reasonForLock) ';
 	var values = 'VALUES ("'
 	+ newAccount.iban 
 	+ '","' + newAccount.firstName 
-	+ '","' + newAccount.name 
+	+ '","' + newAccount.lastName 
 	+ '","' + newAccount.username 
 	+ '","' + newAccount.address 
 	+ '","' + newAccount.telephonenumber 
 	+ '","' + newAccount.email 
-	+ '","' + newAccount.password 
+	+ '","' + newAccount.pwd 
 	+ '",' + newAccount.balance 
 	+ ',' + newAccount.locked 
 	+ ',"' + newAccount.reasonForLock + '");'

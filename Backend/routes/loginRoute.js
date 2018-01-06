@@ -124,13 +124,15 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-var iban;
+var user;
 var id;
 
 router.post('/', function(req, res){
+	errorBody = null;
+
 	var account = {
 		username: req.body.username,
-		password: req.body.password
+		pwd: req.body.password
 	}
 
 	async.series([
@@ -145,31 +147,42 @@ router.post('/', function(req, res){
 			});
         }
 
-        if(iban !== null && iban != undefined){
-        	var id;
+        if(errorBody === null){
+        	if(user != null && user != undefined){
+	        	async.series([
+	        		function(callback) {establishSession(user, callback);},
+	        		function(callback) {getSession(user, callback);}
+	        	], function(err){
+	        		if (err) {
+	            		logger.log({
+							level: 'error',
+							message: err
+						});
+	        		}
 
-        	async.series([
-        		function(callback) {establishSession(iban, callback);},
-        		function(callback) {getSession(iban, callback);}
-        	], function(err){
-        		if (err) {
-            		logger.log({
-						level: 'error',
-						message: err
+	        		connection.end(function(err) {
+	  					logger.log({
+							level: 'info',
+							message: 'Data base connection terminated.'
+						});
 					});
-        		}
 
-        		connection.end(function(err) {
-  					// The connection is terminated now
-				});
+	        		var resBody = {
+						status: true,
+						sessionID: id
+					}
 
-        		var resBody = {
-					status: true,
-					sessionID: id
-				}
+					res.send(resBody);
+	        	});
+        	}
+        } else {
+        	var resBody = {
+				status: false,
+				code: errorBody.code,
+				message: errorBody.message
+			}
 
-				res.send(resBody);
-        	});
+        	res.send(resBody);
         }
     });
 })
@@ -180,7 +193,7 @@ router.post('/', function(req, res){
 /******************/
 // Sends an insert to the database to register a new account
 function sendRequestToDatabase(account, callback){
-	var select = 'SELECT username, password, iban, triesLeft, lock FROM account ';
+	var select = 'SELECT username, pwd, iban, triesLeft, locked FROM accounts ';
 	var where = 'WHERE username="' + account.username + '";';
 
 	var query = select + where;
@@ -191,6 +204,8 @@ function sendRequestToDatabase(account, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
@@ -202,11 +217,11 @@ function sendRequestToDatabase(account, callback){
 				message: result
 			});
 
-			if(result[0].lock === 0){
-				var decrypted = cryptoJS.AES.decrypt(result[0].password, aesKey).toString(cryptoJS.enc.Utf8);
+			if(result[0].locked === 0){
+				var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
 
-				if(account.password === decrypted){
-					iban = result[0].iban;
+				if(account.pwd === decrypted){
+					user = result[0].username;
 					callback();
 				} else {
 					if(result[0].triesLeft > 0){
@@ -219,12 +234,14 @@ function sendRequestToDatabase(account, callback){
 									message: err
 								});
 	        				}
-						})
 
-						errorBody = {
-							errorCode: 'Das Passwort in incorrect',
-							errorMessage: 'Sie haben noch ' + (result[0].triesLeft-1) + ' Versuche.'
-						}
+	        				errorBody = {
+								errorCode: 'Das Passwort in incorrect',
+								errorMessage: 'Sie haben noch ' + (result[0].triesLeft-1) + ' Versuche.'
+							}
+
+	        				callback();
+						})
 					} else {
 						async.series([
 							function(callback) {lockAccount(result[0].iban, callback);}
@@ -235,12 +252,14 @@ function sendRequestToDatabase(account, callback){
 									message: err
 								});
 	        				}
-						})
 
-						errorBody = {
-							errorCode: 'Account gesperrt',
-							errorMessage: 'Sie haben es nicht geschafft sich nach drei versuchen anzumelden.'
-						}
+	        				errorBody = {
+								errorCode: 'Account gesperrt',
+								errorMessage: 'Sie haben es nicht geschafft sich nach drei versuchen anzumelden.'
+							}
+
+	        				callback();
+						})
 					}
 				}
 			} else {
@@ -248,6 +267,8 @@ function sendRequestToDatabase(account, callback){
 					errorCode: 'Account gesperrt',
 					errorMessage: 'Wenden Sie sich an einen Administrator.'
 				}
+
+				callback();
 			}
 		}
 	})
@@ -255,7 +276,7 @@ function sendRequestToDatabase(account, callback){
 
 // Reduces the count for login tries
 function reduceTries(iban, triesLeft, callback){
-	var update = 'UPDATE account ';
+	var update = 'UPDATE accounts ';
 	var set = 'SET triesLeft = ' + triesLeft + ' ';
 	var where = 'WHERE iban="' + iban + '";';
 
@@ -267,6 +288,8 @@ function reduceTries(iban, triesLeft, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else {
 			logger.log({
 				level: 'info',
@@ -285,8 +308,8 @@ function reduceTries(iban, triesLeft, callback){
 
 // Locks an account
 function lockAccount(iban, callback){
-	var update = 'UPDATE account ';
-	var set = 'SET lock = ' + 1 + ', reasonForLock = "Failed to login after three attempts."';
+	var update = 'UPDATE accounts ';
+	var set = 'SET locked=' + 1 + ', reasonForLock="Failed to login after three attempts." ';
 	var where = 'WHERE iban="' + iban + '";';
 
 	var query = update + set + where;
@@ -297,6 +320,8 @@ function lockAccount(iban, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else {
 			logger.log({
 				level: 'info',
@@ -316,14 +341,14 @@ function lockAccount(iban, callback){
 var tokenExists = false;
 
 // Establishes a session which is stored in the MYSQL-DB
-function establishSession(iban, callback){
+function establishSession(user, callback){
 	var date = new Date();
 	var time = date.getTime();
 	var tenMinutesMiliS = 600000;
 	var sessionTime = time+tenMinutesMiliS;
 
 	async.series([
-		function (callback) {checkForExistingSessions(iban, callback);}
+		function (callback) {checkForExistingSessions(user, callback);}
 	], function(err){
 		if (err) {
             logger.log({
@@ -334,7 +359,7 @@ function establishSession(iban, callback){
 
         if(tokenExists === true){
         	async.series([
-        		function(callback) {renewSession(iban, sessionTime, callback);}
+        		function(callback) {renewSession(user, sessionTime, callback);}
         	], function(err){
         		if (err) {
             		logger.log({
@@ -342,10 +367,12 @@ function establishSession(iban, callback){
 						message: err
 					});
         		}
+
+        		callback();
         	})
         }else {
         	async.series([
-        		createNewSession(iban, sessionTime, callback)
+        		function(callback) {createNewSession(user, sessionTime, callback);}
         	], function(err){
         		if (err) {
             		logger.log({
@@ -353,15 +380,17 @@ function establishSession(iban, callback){
 						message: err
 					});
         		}
+
+        		callback();
         	})
         }
 	})
 }
 
 // Checks for allready existing session
-function checkForExistingSessions(iban, callback){
-	var select = 'SELECT sessionId FROM session ';
-	var where = 'WHERE iban="' + iban + '";';
+function checkForExistingSessions(user, callback){
+	var select = 'SELECT sessionId FROM sessions ';
+	var where = 'WHERE username="' + user + '";';
 
 	var query = select + where;
 
@@ -371,6 +400,8 @@ function checkForExistingSessions(iban, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
@@ -382,18 +413,19 @@ function checkForExistingSessions(iban, callback){
 				message: result
 			});
 
-			if(result != null || result != undefined){
+			if(result.length != 0){
 				tokenExists = true;
-				callback();
 			}
+
+			callback();
 		}
 	})
 } 
 
-function renewSession(iban, sessionTime, callback){
+function renewSession(user, sessionTime, callback){
 	var update = 'UPDATE sessions ';
-	var set = 'SET sessionTime=' + sessionTime.toString() + ' ';
-	var where = 'WHERE iban="' + iban + '";';
+	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
+	var where = 'WHERE username="' + user + '";';
 
 	var query = update + set + where;
 
@@ -403,6 +435,8 @@ function renewSession(iban, sessionTime, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
@@ -413,16 +447,18 @@ function renewSession(iban, sessionTime, callback){
 				level: 'info',
 				message: result
 			});
+
+			callback();
 		}
 	})
 }
 
 // Creates a new session
-function createNewSession(iban, sessionTime, callback){
+function createNewSession(user, sessionTime, callback){
 	var id = createSessionID();
 
-	var insert = 'INSERT INTO session (sessionId, iban, expirationTime) ';
-	var values = 'VALUES ("'+ id + '","' + iban + '","' + sessionTime.toString() + '");'
+	var insert = 'INSERT INTO sessions (sessionId, username, expirationTime) ';
+	var values = 'VALUES ("'+ id + '","' + user + '","' + sessionTime.toString() + '");'
 
 	var query = insert + values;
 
@@ -432,6 +468,8 @@ function createNewSession(iban, sessionTime, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else {
 			logger.log({
 				level: 'info',
@@ -462,9 +500,9 @@ function createSessionID(){
 }
 
 // Gets the sessionID
-function getSession(iban, callback){
-	var select = 'SELECT sessionId FROM session ';
-	var where = 'WHERE iban="' + iban + '";';
+function getSession(user, callback){
+	var select = 'SELECT sessionId FROM sessions ';
+	var where = 'WHERE username="' + user + '";';
 
 	var query = select + where;
 
@@ -474,6 +512,8 @@ function getSession(iban, callback){
 				level: 'error',
 				message: err
 			});
+
+			callback();
 		} else{
 			logger.log({
 				level: 'info',
