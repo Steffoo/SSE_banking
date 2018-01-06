@@ -127,6 +127,7 @@ function readDatabaseFile(callback){
 /********************/
 var id;
 var isAdmin;
+var iban;
 
 router.post('/', function(req, res){
 	isAdmin = false;
@@ -134,7 +135,7 @@ router.post('/', function(req, res){
 
 	var account = {
 		username: req.body.username,
-		usernameToLock: req.body.usernameToLock,
+		usernameToDelete: req.body.usernameToDelete,
      	sessionId: req.body.sessionId,
 	}
 
@@ -151,14 +152,21 @@ router.post('/', function(req, res){
         },
         function(callback) {
         	if(errorBody === null){
-        		checkIfAdminLockAdmin(account.username, account.usernameToLock, callback);
+        		checkIfAdminDeleteAdmin(account.username, account.usernameToDelete, callback);
         	} else {
         		callback();
         	}
         },
         function(callback) {
         	if(errorBody === null){
-        		sendRequestToDatabase(account.usernameToLock, callback);
+        		getIban(account.usernameToDelete, callback);
+        	} else {
+        		callback();
+        	}
+        },
+        function(callback) {
+        	if(errorBody === null){
+        		sendRequestToDatabase(account.usernameToDelete, callback);
         	} else {
         		callback();
         	}
@@ -181,7 +189,11 @@ router.post('/', function(req, res){
 		if(errorBody === null && info === null){
 			var resBody = {
 				status: true,
-				sessionID: id
+				sessionID: id,
+				user: = {
+					iban: iban,
+					username: account.username
+				}
 			}
 
 			res.send(resBody);
@@ -337,24 +349,23 @@ function checkIfAdmin(username, callback){
 	})
 }
 
-// Check if admin is trying to lock himself
-function checkIfAdminLockAdmin(username, usernameToLock, callback){
-	if(username === usernameToLock){
+// Check if admin is trying to delete himself
+function checkIfAdminDeleteAdmin(username, usernameToDelete, callback){
+	if(username === usernameToDelete){
 		errorBody = {
 			errorCode: 'Netter Versuch',
-			errorMessage: 'Sie können sich nicht selbst sperren.'
+			errorMessage: 'Sie können sich nicht selbst löschen.'
 		}
 	}
 	callback();
 }
 
-// Send request to database
-function sendRequestToDatabase(username, callback){
-	var update = 'UPDATE accounts ';
-	var set = 'SET locked=' + 1 + ', reasonForLock="Admin locked account." ';
+// Gets Iban
+function getIban(username, callback){
+	var select = 'SELECT iban FROM accounts ';
 	var where = 'WHERE username="' + username + '";';
 
-	var query = update + set + where;
+	var query = select + where;
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -367,7 +378,44 @@ function sendRequestToDatabase(username, callback){
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Row updated.'
+				message: 'Query sent.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if (result.length === 0){
+				info = 'Es gibt keinen Benutzer mit diesem Usernamen.';
+				callback();
+			} else {
+				iban = result[0].iban;
+				callback();
+			}
+		}
+	})
+}
+
+// Send request to database
+function sendRequestToDatabase(username, callback){
+	var deleteFrom = 'DELETE FROM accounts ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = deleteFrom + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Row deleted.'
 			});
 
 			logger.log({

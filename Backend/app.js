@@ -31,16 +31,17 @@ var ipAddress = ip.address();
 /****************************/
 const loginRoute = require('./routes/loginRoute.js');
 const registerRoute = require('./routes/registerRoute.js');
-const changePasswordRoute = require('./routes/changePassword.js');
-const lockAccountRoute = require('./routes/lockAccount.js');
-const unlockAccountRoute = require('./routes/unlockAccount.js');
-const deleteAccountRoute = require('./routes/deleteAccount.js');
+const profileRoute = require('./routes/profileRoute.js');
+const changePasswordRoute = require('./routes/changePasswordRoute.js');
+const lockAccountRoute = require('./routes/lockAccountRoute.js');
+const unlockAccountRoute = require('./routes/unlockAccountRoute.js');
+const deleteAccountRoute = require('./routes/deleteAccountRoute.js');
 
 
 /**************************************************/
 /* Account transfer and movement functions routes */
 /**************************************************/
-const accountMovementRoute = require('./routes/accountMovement.js');
+const accountMovementRoute = require('./routes/accountMovementRoute.js');
 const accountTransferRoute = require('./routes/accountTransfer.js');
 
 
@@ -137,6 +138,7 @@ function writeToDataBaseFile(){
 app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
+app.use('/profile', profileRoute);
 app.use('/changePassword', changePasswordRoute);
 app.use('/lockAccount', lockAccountRoute);
 app.use('/unlockAccount', unlockAccountRoute);

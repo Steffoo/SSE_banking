@@ -128,6 +128,7 @@ function readDatabaseFile(callback){
 /********************/
 var user;
 var id;
+var iban;
 
 router.post('/', function(req, res){
 	errorBody = null;
@@ -171,7 +172,11 @@ router.post('/', function(req, res){
 
 	        		var resBody = {
 						status: true,
-						sessionID: id
+						sessionID: id,
+						user: = {
+							iban: iban,
+							username: account.username
+						}
 					}
 
 					res.send(resBody);
@@ -219,12 +224,26 @@ function sendRequestToDatabase(account, callback){
 				message: result
 			});
 
+			iban = result[0].iban;
+
 			if(result[0].locked === 0){
 				var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
 
 				if(account.pwd === decrypted){
-					user = result[0].username;
-					callback();
+					async.series([
+						function(callback) {resetTries(result[0].iban, callback);}
+					], function(err){
+						if (err) {
+	            			logger.log({
+								level: 'error',
+								message: err
+							});
+	        			}
+
+	        			user = result[0].username;
+
+	        			callback();
+					})
 				} else {
 					if(result[0].triesLeft > 0){
 						async.series([
@@ -296,6 +315,38 @@ function reduceTries(iban, triesLeft, callback){
 			logger.log({
 				level: 'info',
 				message: 'Trial count reduced.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			callback();
+		}
+	})
+}
+
+// Resets the count for login tries
+function resetTries(iban, callback){
+	var update = 'UPDATE accounts ';
+	var set = 'SET triesLeft = ' + 3 + ' ';
+	var where = 'WHERE iban="' + iban + '";';
+
+	var query = update + set + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else {
+			logger.log({
+				level: 'info',
+				message: 'Trial count reset.'
 			});
 
 			logger.log({

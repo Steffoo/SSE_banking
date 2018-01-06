@@ -125,6 +125,7 @@ function readDatabaseFile(callback){
 /* Request handling */
 /********************/
 var id;
+var iban;
 var pwdCorrect;
 
 router.post('/', function(req, res){
@@ -173,7 +174,11 @@ router.post('/', function(req, res){
 		if(errorBody === null){
 			var resBody = {
 				status: true,
-				sessionID: id
+				sessionID: id,
+				user = {
+					iban: iban,
+					username: account.username
+				}
 			}
 
 			res.send(resBody);
@@ -282,7 +287,7 @@ function increaseExpirationTime(username, callback){
 }
 
 function checkPassword(username, pwd, callback){
-	var select = 'SELECT pwd FROM accounts ';
+	var select = 'SELECT pwd, iban FROM accounts ';
 	var where = 'WHERE username="' + username + '";';
 
 	var query = select + where;
@@ -309,6 +314,7 @@ function checkPassword(username, pwd, callback){
 			var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
 
 			if(decrypted === pwd){
+				iban = result[0].iban;
 				pwdCorrect = true;
 				callback();
 			} else {
