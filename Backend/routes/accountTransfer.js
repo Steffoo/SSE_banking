@@ -37,16 +37,16 @@ var connection;
 /* Configurations */
 /******************/
 router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false })); 
+router.use(bodyParser.urlencoded({ extended: false }));
 
-const levels = { 
-  error: 0, 
-  warn: 1, 
-  info: 2, 
-  verbose: 3, 
-  debug: 4, 
-  silly: 5 
-} 
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  verbose: 3,
+  debug: 4,
+  silly: 5
+}
 
 const logger = winston.createLogger({
 	transports: [
@@ -124,16 +124,27 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-router.get('/', function(req, res){
-	var account = {
-		username: req.body.username,
+
+var transferError1;
+var transferError2;
+var transferError3;
+var transferStatus;
+router.post('/', function(req, res){
+	var transfer = {
+		username_owner: req.body.username_owner,
+    username_recipient: req.body.username_recipient,
+    amount: req.body.amount,
+    purpose: req.body.purpose,
+    sessionId: req.body.sessionId
 	}
 
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {getSession(account.username_owner, callback);},
-        function(callback) {sendRequestToDatabase(result, callback);}
+        function(callback) {checkAmount(transfer,callback);},
+        //function(callback) {getSession(account.username_owner, callback);},
+        function(callback) {sendRequestToDatabase(transfer, callback);},
+        function(callback) {updateBalance(transfer, callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -150,12 +161,94 @@ router.get('/', function(req, res){
 		});
 
 		var resBody = {
-			status: true,
-			sessionID: id
+			status: transferStatus,
+      errorMessage: JSON.stringify(transferError1)+" "+JSON.stringify(transferError2)+" "+JSON.stringify(transferError3)
 		}
 
 		res.send(resBody);
     });
 })
+
+var currentAmount;
+function checkAmount(transfer, callback){
+
+  var checkAmount = 'SELECT (balance) FROM accounts WHERE username ='+transfer.username_owner+';';
+
+  connection.query(checkAmount, function(err, result, fields) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+      transferError1 = err;
+      callback();
+    } else{
+      currentAmount = result;
+      logger.log({
+        level: 'info',
+        message: 'Checked current amount in data base: '+JSON.stringify(currentAmount[0].balance)
+      });
+      callback();
+    }
+})
+}
+
+function updateBalance(transfer, callback){
+
+  var value = parseFloat(transfer.amount) + parseFloat(currentAmount[0].balance);
+  var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ='+transfer.username_owner+';';
+  connection.query(updateBalance, function(err, result, fields) {
+    if(err){
+      transferStatus = false;
+      logger.log({
+        level: 'error',
+        message: err
+      });
+      transferError3 = err;
+      callback();
+    } else{
+      transferStatus = true;
+      logger.log({
+        level: 'info',
+        message: 'Updated balance in data base.'
+      });
+      callback();
+    }
+
+})
+
+}
+
+function sendRequestToDatabase(transfer, callback){
+  var d = new Date();
+  var m = new Date();
+  var y = new Date();
+  var date = y.getFullYear()+'-'+m.getMonth()+1+'-'+d.getDay();
+
+    var insert = 'INSERT INTO accountmovement (username_owner, username_recipient, amount, purpose, movementDate) '
+    var values = 'VALUES ('+transfer.username_owner+','+transfer.username_recipient+','+transfer.amount+','+transfer.purpose+',"'+ date +'");';
+
+    var insertQuery = insert+values;
+
+    connection.query(insertQuery, function(err, result, fields) {
+      if(err){
+        transferStatus = false;
+        logger.log({
+  				level: 'error',
+  				message: err
+  			});
+        transferError2 = err;
+        callback();
+  		} else{
+        transferStatus = true;
+  			logger.log({
+  				level: 'info',
+  				message: 'Inserted movement in data base.'
+  			});
+        callback();
+  		}
+	})
+
+}
 
 module.exports = router;
