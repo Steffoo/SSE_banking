@@ -17,18 +17,18 @@ CREATE TABLE IF NOT EXISTS account
                                     PRIMARY KEY(iban)
                                   );
 
-CREATE TABLE IF NOT EXISTS accountmovement (iban_owner VARCHAR(50) NOT NULL,
+CREATE TABLE IF NOT EXISTS accountmovement (username_owner VARCHAR(50) NOT NULL,
                                             iban_recipient VARCHAR(50) NOT NULL,
                                             amount DECIMAL(9,2) NOT NULL,
                                             purpose VARCHAR(50),
                                             date Date,
-                                            PRIMARY KEY(iban_owner, iban_recipient),
-                                            FOREIGN KEY(iban_owner) REFERENCES account(iban),
+                                            PRIMARY KEY(username_owner, iban_recipient),
+                                            FOREIGN KEY(username_owner) REFERENCES account(username),
                                             FOREIGN KEY(iban_recipient) REFERENCES account(iban)
                                           );
 
 CREATE TABLE IF NOT EXISTS sessions (sessionId VARCHAR(5) NOT NULL UNIQUE,
-									iban VARCHAR(50) NOT NULL, 
+									username VARCHAR(50) NOT NULL, 
 									expirationTime VARCHAR(255) NOT NULL, 
-									PRIMARY KEY(iban),
-									FOREIGN KEY(iban) REFERENCES account(iban));
+									PRIMARY KEY(username),
+									FOREIGN KEY(username) REFERENCES account(username));

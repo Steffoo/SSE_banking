@@ -124,10 +124,13 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
+var iban = "DE"; 
+
 router.post('/', function(req, res){
 	async.series([
         function(callback) {readSecretFile(callback);},
-        function(callback) {readDatabaseFile(callback);}
+        function(callback) {readDatabaseFile(callback);},
+        function(callback) {createIban(callback);}
     ], function(err) {
         if (err) {
             logger.log({
@@ -190,6 +193,72 @@ router.post('/', function(req, res){
 /******************/
 /* MISC functions */
 /******************/
+ibanExists = true;
+
+// Creates an IBAN-Number
+function createNewIban(callback){
+	while(ibanExists === true){
+		async.series([
+			function(callback) {generateIban(callback);},
+			function(callback) {checkForIbans(iban, callback);}
+		], function (err){
+			if (err) {
+		        logger.log({
+					level: 'error',
+					message: err
+				});
+		    }
+		})
+	}
+}
+
+// Generates a random iban number
+function generateIban(callback){
+	var chars = "0123456789";
+
+	for(var i = 0; i < 20; i++){
+		var random = Math.floor(Math.random() * chars.length);
+		iban += chars.charAt(random);
+
+		if(i === 19){
+			callback();
+		}
+	}
+}
+
+// Checks for already existing iban numbers
+function checkForIbans(iban, callback){
+	var select = 'SELECT iban FROM account ';
+	var where = 'WHERE iban="' + iban + '";';
+
+	var query = select + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Query sent to data base.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
+
+			if(result === null || result === undefined){
+				ibanExists = false;
+			}
+		}
+
+		callback();
+	})
+}
+
 // Sends an insert to the database to register a new account
 function sendRequestToDatabase(newAccount, callback){
 	var insert = 'INSERT INTO account (iban, firstName, name, username, address, telephonenumber, email, password, balance, locked, reasonForLock) ';
