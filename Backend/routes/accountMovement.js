@@ -127,7 +127,7 @@ function readDatabaseFile(callback){
 router.get('/', function(req, res){
 	var account = {
 		iban: req.boby.iban,
-		session: req.body.sessionId
+		sessionId: req.body.sessionId
 	}
 
 	async.series([
