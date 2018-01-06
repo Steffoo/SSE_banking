@@ -24,7 +24,6 @@ const databaseFile = './data/secret/database_info.json';
 /* Fields*/
 /*********/
 var errorBody = null;
-var info = null;
 
 
 /*********************************/
@@ -130,7 +129,6 @@ var pwdCorrect;
 
 router.post('/', function(req, res){
 	pwdCorrect = false;
-	info = null;
 
 	var account = {
 		username: req.body.username,
@@ -172,26 +170,18 @@ router.post('/', function(req, res){
 			});
 		});
 
-		if(errorBody === null && info === null){
+		if(errorBody === null){
 			var resBody = {
 				status: true,
 				sessionID: id
 			}
 
 			res.send(resBody);
-		} else if(errorBody != null && info === null){
+		} else {
 			var resBody = {
 				status: false,
 				code: errorBody.errorCode,
 				message: errorBody.errorMessage
-			}
-
-			res.send(resBody);
-		} else if(errorBody === null && info != null){
-			var resBody = {
-				status: true,
-				message: info,
-				sessionID: id
 			}
 
 			res.send(resBody);

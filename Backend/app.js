@@ -33,6 +33,7 @@ const loginRoute = require('./routes/loginRoute.js');
 const registerRoute = require('./routes/registerRoute.js');
 const changePasswordRoute = require('./routes/changePassword.js');
 const lockAccountRoute = require('./routes/lockAccount.js');
+const unlockAccountRoute = require('./routes/unlockAccount.js');
 const deleteAccountRoute = require('./routes/deleteAccount.js');
 
 
@@ -137,10 +138,11 @@ app.use(express.static(path.join(__dirname, frontendDir)));
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
 app.use('/changePassword', changePasswordRoute);
+app.use('/lockAccount', lockAccountRoute);
+app.use('/unlockAccount', unlockAccountRoute);
 app.use('/deleteAccount', deleteAccountRoute);
 app.use('/accountTransfer', accountTransferRoute);
 app.use('/accountMovement', accountMovementRoute);
-
 
 
 /************/

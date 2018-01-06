@@ -134,9 +134,11 @@ router.post('/', function(req, res){
 
 	var account = {
 		username: req.body.username,
-		usernameToDelete: req.body.usernameToDelete,
+		usernameToUnlock: req.body.usernameToUnlock,
      	sessionId: req.body.sessionId,
 	}
+
+	console.log(account.usernameToUnlock);
 
 	async.series([
         function(callback) {readSecretFile(callback);},
@@ -151,14 +153,14 @@ router.post('/', function(req, res){
         },
         function(callback) {
         	if(errorBody === null){
-        		checkIfAdminDeleteAdmin(account.username, account.usernameToDelete, callback);
+        		checkIfAdminUnlockAdmin(account.username, account.usernameToUnlock, callback);
         	} else {
         		callback();
         	}
         },
         function(callback) {
         	if(errorBody === null){
-        		sendRequestToDatabase(account.usernameToDelete, callback);
+        		sendRequestToDatabase(account.usernameToUnlock, callback);
         	} else {
         		callback();
         	}
@@ -337,12 +339,12 @@ function checkIfAdmin(username, callback){
 	})
 }
 
-// Check if admin is trying to delete himself
-function checkIfAdminDeleteAdmin(username, usernameToDelete, callback){
-	if(username === usernameToDelete){
+// Check if admin is trying to unlock himself
+function checkIfAdminUnlockAdmin(username, usernameToUnlock, callback){
+	if(username === usernameToUnlock){
 		errorBody = {
 			errorCode: 'Netter Versuch',
-			errorMessage: 'Sie können sich nicht selbst löschen.'
+			errorMessage: 'Sie können sich nicht selbst entsperren.'
 		}
 	}
 	callback();
@@ -350,10 +352,11 @@ function checkIfAdminDeleteAdmin(username, usernameToDelete, callback){
 
 // Send request to database
 function sendRequestToDatabase(username, callback){
-	var deleteFrom = 'DELETE FROM accounts ';
+	var update = 'UPDATE accounts ';
+	var set = 'SET locked=' + 0 + ', reasonForLock=null ';
 	var where = 'WHERE username="' + username + '";';
 
-	var query = deleteFrom + where;
+	var query = update + set + where;
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -366,7 +369,7 @@ function sendRequestToDatabase(username, callback){
 		} else{
 			logger.log({
 				level: 'info',
-				message: 'Row deleted.'
+				message: 'Row updated.'
 			});
 
 			logger.log({
