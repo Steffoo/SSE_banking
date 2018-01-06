@@ -462,7 +462,7 @@ function createNewSession(user, sessionTime, callback){
 	console.log(id);
 
 	var insert = 'INSERT INTO sessions (sessionId, username, expirationTime) ';
-	var values = 'VALUES ("'+ hashSessionId(id) + '","' + user + '","' + sessionTime.toString() + '");'
+	var values = 'VALUES ("'+ EncodeSessionId(id) + '","' + user + '","' + sessionTime.toString() + '");'
 
 	var query = insert + values;
 
@@ -504,7 +504,7 @@ function createSessionID(){
 }
 
 // Hashes a session ID in base64
-function hashSessionId(id){
+function EncodeSessionId(id){
 	var bytes = utf8.encode(id);
 	var hash = base64.encode(bytes);
 
