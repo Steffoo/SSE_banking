@@ -124,7 +124,10 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-router.post('/accountmovement', function(req, res){
+
+var content;
+
+router.post('/', function(req, res){
 	var account = {
 		username: req.body.username_owner,
 		sessionId: req.body.sessionId
@@ -137,19 +140,26 @@ router.post('/accountmovement', function(req, res){
         function(callback) {sendRequestToDatabase(account, callback);}
     ], function(err) {
         if (err) {
-            logger.log({
-				level: 'error',
-				message: err
-			});
+          logger.log({
+				    level: 'error',
+				    message: err
+			   });
+
+        }else{
+    			logger.log({
+    				level: 'info',
+    				message: 'sending data to frontend.'
+    			});
+
         }
 
         connection.end(function(err) {
   			// The connection is terminated now
-		});
+		    });
 
 		var resBody = {
 			status: true,
-			sessionID: id
+			message: content
 		}
 
 		res.send(resBody);
@@ -160,19 +170,22 @@ router.post('/accountmovement', function(req, res){
 /******************/
 /* MISC functions */
 /******************/
-// Sends an insert to the database to register a new account
+//
 function sendRequestToDatabase(account, callback){
-  var select = 'SELECT movementDate, username_owner, username_recipient, amount FROM accountmovement';
+  var select = 'SELECT movementDate, username_owner, username_recipient, amount, purpose FROM accountmovement ';
 	var where = 'WHERE username_owner = "' + account.username + '" OR username_recipient = "' + account.username + '";';
 
 	var query = select + where;
 
 	connection.query(query, function(err, result, fields) {
-		if(err){
+    content = result;
+    if(err){
 			logger.log({
 				level: 'error',
 				message: err
 			});
+
+      callback();
 		} else{
 			logger.log({
 				level: 'info',
@@ -181,16 +194,22 @@ function sendRequestToDatabase(account, callback){
 
 			logger.log({
 				level: 'info',
-				message: result
+				message: content
 			});
+
+      callback();
 		}
-	})
+	});
+
 }
 
 // Gets the sessionID
-function getSession(user, callback){
-	var select = 'SELECT sessionId FROM sessions ';
-	var where = 'WHERE username="' + user + '";';
+function getSession(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+
+	var select = 'SELECT sessionId, expirationTime FROM sessions ';
+	var where = 'WHERE username="' + username + '";';
 
 	var query = select + where;
 
@@ -213,7 +232,63 @@ function getSession(user, callback){
 				message: result
 			});
 
-			id = result[0].sessionId;
+			if(time <= parseInt(result[0].expirationTime)){
+				async.series([
+					function(callback) {increaseExpirationTime(username, callback);}
+				], function(err){
+					if (err) {
+			            logger.log({
+							level: 'error',
+							message: err
+						});
+			        }
+
+			        id = result[0].sessionId;
+					callback();
+				})
+			} else {
+				errorBody = {
+					errorCode: 'Schlechte Session',
+					errorMessage: 'Session ist abgelaufen.'
+				}
+
+				callback();
+			}
+		}
+	})
+}
+
+// Increases the expiration time of a session
+function increaseExpirationTime(username, callback){
+	var date = new Date();
+	var time = date.getTime();
+	var tenMinutesMiliS = 600000;
+	var sessionTime = time+tenMinutesMiliS;
+
+	var update = 'UPDATE sessions ';
+	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
+	var where = 'WHERE username="' + username + '";';
+
+	var query = update + set + where;
+
+	connection.query(query, function(err, result, fields) {
+		if(err){
+			logger.log({
+				level: 'error',
+				message: err
+			});
+
+			callback();
+		} else{
+			logger.log({
+				level: 'info',
+				message: 'Session time increased.'
+			});
+
+			logger.log({
+				level: 'info',
+				message: result
+			});
 
 			callback();
 		}
