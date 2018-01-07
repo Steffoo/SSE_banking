@@ -10,14 +10,14 @@ import {Router} from '@angular/router';
 export class RegistryComponent implements OnInit {
 
   userData = {
-    userNameInput: '',
-    firstNameInput: '',
-    nameInput: '',
-    addressInput: '',
-    telephonenumberInput: '',
-    emailInput: '',
-    passwordInput: '',
-    confirmPassword: '',
+    userNameInput: 'Steff',
+    firstNameInput: 'Steffen',
+    nameInput: 'Bartsch',
+    addressInput: 'dfad',
+    telephonenumberInput: 'adfdag',
+    emailInput: 'dafg@dklfd.com',
+    passwordInput: 'kkkkkkkk',
+    confirmPassword: 'kkkkkkkk',
   };
   isLoggedIn: boolean;
   showWarning: boolean;
@@ -58,9 +58,25 @@ export class RegistryComponent implements OnInit {
 
   sendUserData() {
     if (this.validUserData()) {
-      let response = this.loginService.register(this.userData);
+      // let response = this.loginService.register(this.userData);
+      const postUserData = {
+        firstName: this.userData.firstNameInput,
+        name: this.userData.nameInput,
+        username: this.userData.userNameInput,
+        address: this.userData.addressInput,
+        telephonenumber: this.userData.telephonenumberInput,
+        email: this.userData.emailInput,
+        password: this.userData.passwordInput,
+        balance: 0.00
+      };
+
+      this.loginService.register(postUserData).subscribe(_res => {
+          if (_res.status) {
+            console.log('response status', _res.status);
+          }
+        });
       // todo console.log löschen
-      // console.log('localstorage', localStorage.getItem('session_banking'));
+      console.log('localstorage', localStorage.getItem('session_banking'));
       this.router.navigate(['/mainMenu']);
       this.showWarning = false;
     } else {

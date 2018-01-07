@@ -39,7 +39,7 @@ export class LoginComponent implements OnInit {
   sendCredentials() {
     if (this.userNameInput && this.passwordInput) {
       this.logInTries++;
-      let response = this.loginService.login(this.userNameInput, this.passwordInput);
+      this.loginService.login(this.userNameInput, this.passwordInput);
       // console.log('localstorage', localStorage.getItem('session_banking'));
       this.router.navigate(['/mainMenu']);
     }

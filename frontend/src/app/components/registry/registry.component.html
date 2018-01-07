@@ -17,9 +17,9 @@
   Email:
   <input type="text" class="login-input" [(ngModel)]="userData.emailInput" placeholder="Email" required #emailInput>
   Passwort (mind. 8 Zeichen):
-  <input type="text" class="login-input" [(ngModel)]="userData.passwordInput" placeholder="Passwort" required #passwordInput>
+  <input type="password" class="login-input" [(ngModel)]="userData.passwordInput" placeholder="Passwort" required #passwordInput>
   Passwort bestätigen:
-  <input type="text" class="login-input" [(ngModel)]="userData.confirmPassword" placeholder="Passwort bestätigen" required #confirmPassword>
+  <input type="password" class="login-input" [(ngModel)]="userData.confirmPassword" placeholder="Passwort bestätigen" required #confirmPassword>
   <div class="button-section">
     <button class="btn-default" (click)="sendUserData()">Registrieren</button>
   </div>
