@@ -231,7 +231,7 @@ function checkAmount(transfer, callback){
 function updateBalance(transfer, callback){
 
   var value = parseFloat(transfer.amount) + parseFloat(currentAmount[0].balance);
-  var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ='+transfer.username_owner+';';
+  var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ="'+transfer.username_owner+'";';
   connection.query(updateBalance, function(err, result, fields) {
     if(err){
       transferStatus = false;
