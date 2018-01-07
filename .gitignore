@@ -1,5 +1,9 @@
 # Created by https://www.gitignore.io/api/node
 
+Backend/data/secret/database_info.json
+frontend/package-lock.json
+
+
 ### Node ###
 # Logs
 logs
