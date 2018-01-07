@@ -369,7 +369,7 @@ function sendRequestToDatabase(transfer, callback){
     var date = y.getFullYear()+'/'+m.getMonth()+1+'/'+d.getDate();
 
     var insert = 'INSERT INTO accountmovement (username_owner, username_recipient, amount, purpose, movementDate) '
-    var values = 'VALUES ('+transfer.username_owner+','+transfer.username_recipient+','+transfer.amount+','+transfer.purpose+', "'+date+'");';
+    var values = 'VALUES ("'+transfer.username_owner+'","'+transfer.username_recipient+'",'+transfer.amount+',"'+transfer.purpose+'", "'+date+'");';
 
     var insertQuery = insert+values;
 
