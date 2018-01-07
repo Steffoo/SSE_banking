@@ -15,40 +15,41 @@ export class LoginComponent implements OnInit {
   isLoggedIn: boolean;
   logInTries = 0;
   showWarning: boolean;
+  warningText: string;
   user;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
+    this.showWarning = false;
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
         this.isLoggedIn = _logged;
         this.logInTries = 0;
-      }
-      this.showWarning = !_logged && this.logInTries > 0;
-      if (this.logInTries > 2) {
-        this.loginService.lockAccount();
       }
     });
   }
 
   ngOnInit() {
     // todo delete
-    this.userNameInput = 'Steff';
-    this.passwordInput = 'kkkkkkkk';
+    this.userNameInput = 'Tai';
+    this.passwordInput = 'tttttttt';
   }
 
   sendCredentials() {
     if (this.userNameInput && this.passwordInput) {
-      // this.logInTries++;
       const body = {
         username: this.userNameInput,
         password: this.passwordInput,
       };
       this.loginService.login(body).subscribe(_res => {
         if (_res.status) {
+          this.showWarning = false;
           localStorage.setItem('banking_session', _res.sessionID);
           this.loginService.confirmLogin();
           this.router.navigate(['/mainMenu']);
+        } else {
+          this.warningText = _res.code + '<br>' + _res.message;
+          this.showWarning = true;
         }
         console.log('response', _res);
       });

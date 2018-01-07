@@ -1,3 +1,9 @@
+<div [ngClass]="{'visible': !loggedIn && logInTries > 0}" class="unsuccesful">
+  <div [ngClass]="{'visible': showWarning}" class="unsuccesful">
+    <div [innerHTML]="warningText"></div>
+  </div>
+</div>
+
 <div class="login-box">
   <div class="login-text">Bitte melden Sie sich an:</div>
   <input type="text" class="form-control login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="sendCredentials()"
@@ -8,10 +14,3 @@
     <fa name="sign-in" size="2x"></fa><span (click)="sendCredentials()"> Einloggen</span></a>
 </div>
 
-<div [ngClass]="{'visible': !loggedIn && logInTries > 0}" class="unsuccesful">
-  <div [ngClass]="{'visible': showWarning}" class="unsuccesful">
-    <div>Anmeldedaten falsch</div>
-    <div>Bitte erneut eingeben</div>
-    <div>Versuch: {{logInTries}}</div>
-  </div>
-</div>
