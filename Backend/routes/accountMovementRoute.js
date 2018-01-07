@@ -206,24 +206,25 @@ router.post('/', function(req, res){
 /******************/
 //
 function sendRequestToDatabase(account, callback){
-  var select = 'SELECT movementDate, username_owner, username_recipient, amount, purpose FROM accountmovement ';
-	var where = 'WHERE username_owner = "' + account.username + '" OR username_recipient = "' + account.username + '";';
+  var select = 'SELECT DATE_FORMAT(movementDate, "%d-%m-%Y") AS movementDate, username_owner, username_recipient, amount, purpose FROM accountmovement ';
+	var where = 'WHERE username_owner = ' + account.username + ' OR username_recipient = ' + account.username + ';';
 
 	var query = select + where;
 
 	connection.query(query, function(err, result, fields) {
-    content = result;
     if(err){
-			logger.log({
+      content = err;
+      logger.log({
 				level: 'error',
 				message: err
 			});
 
       callback();
 		} else{
-			logger.log({
+      content = result;
+      logger.log({
 				level: 'info',
-				message: 'Query sent to data base.'+content
+				message: 'Query sent to data base: '
 			});
 
 			logger.log({
@@ -232,9 +233,13 @@ function sendRequestToDatabase(account, callback){
 			});
 
 			if(result.length === 0){
-          		info: 'Es gibt keine Kontoauszüge für diesen Benutzer.';
-        		callback();
+        info: 'Es gibt keine Kontoauszüge für diesen Benutzer.';
+        callback();
 			} else {
+        logger.log({
+  				level: 'info',
+  				message: 'Succesful'
+  			});
 				callback();
 			}
 		}
