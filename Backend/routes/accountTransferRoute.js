@@ -141,7 +141,7 @@ router.post('/', function(req, res){
 	async.series([
     function(callback) {readSecretFile(callback);},
     function(callback) {readDatabaseFile(callback);},
-    function(callback) {getSession(account.username_owner, callback);},
+    function(callback) {getSession(transfer.username_owner, callback);},
     function(callback) {
       if(errorBody != null){
         checkAmount(transfer,callback);
