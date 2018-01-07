@@ -16,7 +16,6 @@ export class LoginComponent implements OnInit {
   logInTries = 0;
   showWarning: boolean;
   warningText: string;
-  user;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
@@ -30,9 +29,8 @@ export class LoginComponent implements OnInit {
   }
 
   ngOnInit() {
-    // todo delete
-    this.userNameInput = 'Tai';
-    this.passwordInput = 'tttttttt';
+    // this.userNameInput = 'Thaer';
+    // this.passwordInput = 'tttttttt';
   }
 
   sendCredentials() {
@@ -45,15 +43,14 @@ export class LoginComponent implements OnInit {
         if (_res.status) {
           this.showWarning = false;
           localStorage.setItem('banking_session', _res.sessionID);
-          this.loginService.confirmLogin();
+          this.loginService.confirmLogin(_res.user);
           this.router.navigate(['/mainMenu']);
         } else {
           this.warningText = _res.code + '<br>' + _res.message;
           this.showWarning = true;
         }
-        console.log('response', _res);
+        // console.log('response', _res);
       });
-      console.log('localstorage', localStorage);
     }
   }
 

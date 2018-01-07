@@ -15,13 +15,6 @@ export class LoginService {
   isloggedIn: boolean;
   user: User;
 
-  //  todo delete, only Mock-response
-  MockResponse = {
-    user: new User('666', name, '0815'),
-    sessionId: '123456',
-    stauts: true
-  };
-
   constructor(private http: HttpClient, private router: Router) {
     // this.logged.next(false);
   }
@@ -46,9 +39,11 @@ export class LoginService {
     console.log('disable Account');
   }
 
-  confirmLogin() {
+  confirmLogin(user) {
+    this.user = new User(user);
     this.isloggedIn = true;
     this.logged.next(this.isloggedIn);
+    console.log('successful login');
   }
 
   onLogOut() {

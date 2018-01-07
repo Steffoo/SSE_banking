@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {LoginService} from '../../services/login.service';
 import {Router} from '@angular/router';
 
@@ -71,16 +71,30 @@ export class RegistryComponent implements OnInit {
       };
 
       this.loginService.register(postUserData).subscribe(_res => {
-          if (_res.status) {
-            // console.log('response', _res);
-            this.loginService.confirmLogin();
-            this.router.navigate(['/mainMenu']);
-            this.showWarning = false;
-          } else {
-            this.warningText = 'Benutzername ist bereits vergeben';
-            this.showWarning = true;
-          }
-        });
+        // successful registration
+        if (_res.status) {
+          // console.log('response', _res);
+
+          const body = {
+            username: this.userData.userNameInput,
+            password: this.userData.passwordInput,
+          };
+
+          // login when registration is successful
+          this.loginService.login(body).subscribe(_logRes => {
+            if (_logRes.status) {
+              localStorage.setItem('banking_session', _logRes.sessionID);
+              this.loginService.confirmLogin(_logRes.user);
+              this.router.navigate(['/mainMenu']);
+            }
+          });
+          this.showWarning = false;
+        } else {
+          this.warningText = 'Benutzername ist bereits vergeben';
+          this.showWarning = true;
+        }
+      });
+      // wrong userdata
     } else {
       this.warningText = `Anmeldedaten falsch <br> Bitte prüfen Sie ihre Anmeldedaten`;
       this.showWarning = true;
