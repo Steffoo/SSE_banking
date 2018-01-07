@@ -24,6 +24,7 @@ const databaseFile = './data/secret/database_info.json';
 /* Fields*/
 /*********/
 var errorBody = null;
+var info = null;
 
 
 /*********************************/
@@ -128,6 +129,10 @@ var id;
 var content;
 
 router.post('/', function(req, res){
+	info = null;
+	errorBody = null;
+	content = null;
+	
 	var account = {
 		username: req.body.username_owner,
 		sessionId: req.body.sessionId
@@ -136,8 +141,14 @@ router.post('/', function(req, res){
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        //function(callback) {getSession(account.username, callback);},
-        function(callback) {sendRequestToDatabase(account, callback);}
+        function(callback) {getSession(account.username, callback);},
+        function(callback) {
+        	if(errorBody != null){
+        		sendRequestToDatabase(account, callback);
+        	} else{
+        		callback();
+        	}
+        }
     ], function(err) {
         if (err) {
           logger.log({
@@ -154,15 +165,38 @@ router.post('/', function(req, res){
         }
 
         connection.end(function(err) {
-  			// The connection is terminated now
+  			logger.log({
+				level: 'info',
+				message: 'Data base connection terminated.'
+			});
 		    });
 
-		var resBody = {
-			status: true,
-			message: content
-		}
+		if(errorBody === null && info === null){
+			var resBody = {
+				status: true,
+				sessionId: id,
+				movements: content
+			}
 
-		res.send(resBody);
+			res.send(resBody);
+		} else if(errorBody != null && info === null){
+			var resBody = {
+				status: false,
+				code: errorBody.errorCode,
+				message: errorBody.errorMessage,
+				sessionId: id
+			}
+
+			res.send(resBody);
+		} else if(errorBody === null && info != null){
+			var resBody = {
+				status: true,
+				message: info,
+				sessionID: id
+			}
+
+			res.send(resBody);
+		}
     });
 })
 
@@ -197,7 +231,12 @@ function sendRequestToDatabase(account, callback){
 				message: content
 			});
 
-      callback();
+			if(result.length === 0){
+          		info: 'Es gibt keine Kontoauszüge für diesen Benutzer.';
+        		callback();
+			} else {
+				callback();
+			}
 		}
 	});
 

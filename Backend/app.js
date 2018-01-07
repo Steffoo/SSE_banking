@@ -42,7 +42,7 @@ const deleteAccountRoute = require('./routes/deleteAccountRoute.js');
 /* Account transfer and movement functions routes */
 /**************************************************/
 const accountMovementRoute = require('./routes/accountMovementRoute.js');
-const accountTransferRoute = require('./routes/accountTransfer.js');
+const accountTransferRoute = require('./routes/accountTransferRoute.js');
 
 
 /******************/

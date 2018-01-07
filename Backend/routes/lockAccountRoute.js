@@ -132,6 +132,7 @@ var iban;
 router.post('/', function(req, res){
 	isAdmin = false;
 	info = null;
+	errorBody = null;
 
 	var account = {
 		username: req.body.username,
@@ -190,7 +191,7 @@ router.post('/', function(req, res){
 			var resBody = {
 				status: true,
 				sessionID: id,
-				user: = {
+				user: {
 					iban: iban,
 					username: account.username
 				}

@@ -124,13 +124,13 @@ function readDatabaseFile(callback){
 /********************/
 /* Request handling */
 /********************/
-
-var transferError1;
-var transferError2;
-var transferError3;
 var transferStatus;
+var id;
+
 router.post('/', function(req, res){
-	var transfer = {
+  errorBody = null;
+
+  var transfer = {
 		username_owner: req.body.username_owner,
     username_recipient: req.body.username_recipient,
     amount: req.body.amount,
@@ -139,33 +139,61 @@ router.post('/', function(req, res){
 	}
 
 	async.series([
-        function(callback) {readSecretFile(callback);},
-        function(callback) {readDatabaseFile(callback);},
-        function(callback) {checkAmount(transfer,callback);},
-        //function(callback) {getSession(account.username_owner, callback);},
-        function(callback) {sendRequestToDatabase(transfer, callback);},
-        function(callback) {updateBalance(transfer, callback);}
-    ], function(err) {
-        if (err) {
-            logger.log({
-				level: 'error',
-				message: err
-			});
+    function(callback) {readSecretFile(callback);},
+    function(callback) {readDatabaseFile(callback);},
+    function(callback) {getSession(account.username_owner, callback);},
+    function(callback) {
+      if(errorBody != null){
+        checkAmount(transfer,callback);
+      }else{
+        callback();
+      }
+    },
+    function(callback) {
+      if(errorBody != null){
+        sendRequestToDatabase(transfer, callback);
+      }else{
+        callback();
+      }
+    },
+    function(callback) {
+        if(errorBody != null){
+          updateBalance(transfer, callback);
+        } else {
+          callback();
         }
-
-        connection.end(function(err) {
+    }
+    ], function(err) {
+      if (err) {
+        logger.log({
+		      level: 'error',
+				  message: err
+			  });
+      }
+      connection.end(function(err) {
   			logger.log({
 				level: 'info',
 				message: 'Data base connection terminated.'
 			});
 		});
 
-		var resBody = {
-			status: transferStatus,
-      errorMessage: JSON.stringify(transferError1)+" "+JSON.stringify(transferError2)+" "+JSON.stringify(transferError3)
-		}
+      if(errorBody != null){
+        var resBody = {
+          status: transferStatus,
+          sessionId: id
+        }
 
-		res.send(resBody);
+        res.send(resBody);
+      } else{
+        var resBody = {
+          status: false,
+          code: errorBody.errorCode,
+          message: errorBody.errorMessage,
+          sessionId: id
+        }
+
+        res.send(resBody);
+      }
     });
 })
 
@@ -180,15 +208,22 @@ function checkAmount(transfer, callback){
         level: 'error',
         message: err
       });
-      transferError1 = err;
       callback();
     } else{
-      currentAmount = result;
-      logger.log({
-        level: 'info',
-        message: 'Checked current amount in data base: '+JSON.stringify(currentAmount[0].balance)
-      });
-      callback();
+      if(result.length != 0){
+        currentAmount = result;
+        logger.log({
+          level: 'info',
+          message: 'Checked current amount in data base: '+JSON.stringify(currentAmount[0].balance)
+        });
+        callback();
+      } else {
+        errorBody = {
+          errorCode: 'User nicht vorhanden',
+          errorMessage: 'Es gibt keinen Benutzer mit diesem Usernamen'
+        }
+        callback();
+      }
     }
 })
 }
@@ -204,15 +239,22 @@ function updateBalance(transfer, callback){
         level: 'error',
         message: err
       });
-      transferError3 = err;
       callback();
     } else{
-      transferStatus = true;
-      logger.log({
-        level: 'info',
-        message: 'Updated balance in data base.'
-      });
-      callback();
+      if(result.affectedRows != 0){
+        transferStatus = true;
+        logger.log({
+          level: 'info',
+          message: 'Updated balance in data base.'
+        });
+        callback();
+      }else {
+        errorBody = {
+          errorCode: 'Kontostand nicht verändert',
+          errorMessage: 'Der Kontostand konnte nicht verändert werden.'
+        }
+        callback();
+      }
     }
 
 })
@@ -237,7 +279,6 @@ function sendRequestToDatabase(transfer, callback){
   				level: 'error',
   				message: err
   			});
-        transferError2 = err;
         callback();
   		} else{
         transferStatus = true;
@@ -249,6 +290,98 @@ function sendRequestToDatabase(transfer, callback){
   		}
 	})
 
+}
+
+// Gets the sessionID
+function getSession(username, callback){
+  var date = new Date();
+  var time = date.getTime();
+
+  var select = 'SELECT sessionId, expirationTime FROM sessions ';
+  var where = 'WHERE username="' + username + '";';
+
+  var query = select + where;
+
+  connection.query(query, function(err, result, fields) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+
+      callback();
+    } else{
+      logger.log({
+        level: 'info',
+        message: 'Session recieved.'
+      });
+
+      logger.log({
+        level: 'info',
+        message: result
+      });
+
+      if(time <= parseInt(result[0].expirationTime)){
+        async.series([
+          function(callback) {increaseExpirationTime(username, callback);}
+        ], function(err){
+          if (err) {
+                  logger.log({
+              level: 'error',
+              message: err
+            });
+              }
+
+              id = result[0].sessionId;
+          callback();
+        })
+      } else {
+        errorBody = {
+          errorCode: 'Schlechte Session',
+          errorMessage: 'Session ist abgelaufen.'
+        }
+
+        callback();
+      }
+    }
+  })
+}
+
+// Increases the expiration time of a session
+function increaseExpirationTime(username, callback){
+  var date = new Date();
+  var time = date.getTime();
+  var tenMinutesMiliS = 600000;
+  var sessionTime = time+tenMinutesMiliS;
+
+  var update = 'UPDATE sessions ';
+  var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
+  var where = 'WHERE username="' + username + '";';
+
+  var query = update + set + where;
+
+  connection.query(query, function(err, result, fields) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+
+      callback();
+    } else{
+      logger.log({
+        level: 'info',
+        message: 'Session time increased.'
+      });
+
+      logger.log({
+        level: 'info',
+        message: result
+      });
+
+      callback();
+    }
+  })
 }
 
 module.exports = router;

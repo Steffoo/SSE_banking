@@ -131,6 +131,7 @@ var id;
 router.post('/', function(req, res){
 	info = null;
 	body = null;
+	errorBody = null;
 
 	var account = {
 		username: req.body.username,
@@ -166,6 +167,7 @@ router.post('/', function(req, res){
 		if(errorBody === null && info === null){
 			var resBody = {
 				status: true,
+				sessionId: id,
 				firstName: body.firstName,
      			lastName: body.lastName, 
 				username: body.username,

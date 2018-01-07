@@ -130,6 +130,7 @@ var pwdCorrect;
 
 router.post('/', function(req, res){
 	pwdCorrect = false;
+	errorBody = null;
 
 	var account = {
 		username: req.body.username,
@@ -175,7 +176,7 @@ router.post('/', function(req, res){
 			var resBody = {
 				status: true,
 				sessionID: id,
-				user = {
+				user: {
 					iban: iban,
 					username: account.username
 				}

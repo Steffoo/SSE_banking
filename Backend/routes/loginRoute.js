@@ -173,7 +173,7 @@ router.post('/', function(req, res){
 	        		var resBody = {
 						status: true,
 						sessionID: id,
-						user: = {
+						user: {
 							iban: iban,
 							username: account.username
 						}
