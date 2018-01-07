@@ -11,7 +11,18 @@ export class RestService {
 
     constructor(private http: Http) { }
 
-    
+    public getAccount(data) {
+        return this.post("/profile", data);
+    }
+
+    public accountTransfer(data){
+        return this.post("/accountTransfer", data);
+    }
+
+    public getAccountMovement(data): Observable<any> {
+        return this.post("/accountMovement", data);
+    }
+
     public unlockAccount(data): Observable<any> {
         return this.post("/unlockAccount", data);
     }

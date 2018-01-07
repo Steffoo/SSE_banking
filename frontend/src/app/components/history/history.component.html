@@ -1,55 +1,26 @@
-<a routerLink="/mainMenu" type="button" class="link-button pull-right"><fa name="arrow-left" size="2x"></fa> Zurück</a>
+<a routerLink="/mainMenu" type="button" class="link-button pull-right">
+  <fa name="arrow-left" size="2x"></fa> Zurück</a>
 
 <h3 class="white">Mein Kontoauszug:</h3>
 
 <table class="table white" style="margin-top:50px">
   <thead>
     <tr>
-      <th>Kontoinhaber</th>
-      <th>IBAN</th>
+      <th>Empfänger</th>
+      <th>Sender</th>
       <th>Betrag</th>
+      <th>V. Zweck</th>
       <th>Datum</th>
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>John Doe</td>
-      <td>10000</td>
-      <td class="money-green">+ 124,55</td>
-      <td>01.01.2018</td>
+    <tr *ngFor="let movement of movements">
+      <td>{{movement.username_recipient}}</td>
+      <td>{{movement.username_owner}}</td>
+      <td *ngIf="movement.username_recipient == username"class="money-green">+{{movement.amount}}</td>
+      <td *ngIf="movement.username_recipient != username"class="red">-{{movement.amount}}</td>
+      <td>{{movement.purpose}}</td>
+      <td>{{movement.movementDate}}</td>
     </tr>
-
-    <tr>
-      <td>Steffen Bartsch</td>
-      <td>10001</td>
-      <td class="red">- 135,00</td>
-      <td>01.01.2018</td>
-    </tr>
-  </tbody>
-</table>
-
-<hr style="margin-top:50px; margin-bottom:50px">
-
-<h3 class="white">Kontoauszug eines Kunden anzeigen:</h3>
-
-<span class="white">Bitte wählen Sie einen Kunden aus:</span>
-<br>
-<select>
-  <option data-tokens="ketchup mustard">Hot Dog, Fries and a Soda</option>
-  <option data-tokens="mustard">Burger, Shake and a Smile</option>
-  <option data-tokens="frosting">Sugar, Spice and all things nice</option>
-</select>
-
-
-<table class="table white" style="margin-top:50px">
-  <thead>
-    <tr>
-      <th>Kontoinhaber</th>
-      <th>IBAN</th>
-      <th>Betrag</th>
-      <th>Datum</th>
-    </tr>
-  </thead>
-  <tbody>
   </tbody>
 </table>
