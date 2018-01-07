@@ -200,7 +200,7 @@ router.post('/', function(req, res){
 var currentAmount;
 function checkAmount(transfer, callback){
 
-  var checkAmount = 'SELECT (balance) FROM accounts WHERE username ='+transfer.username_owner+';';
+  var checkAmount = 'SELECT balance FROM accounts WHERE username ="'+transfer.username_owner+'";';
 
   connection.query(checkAmount, function(err, result, fields) {
     if(err){
