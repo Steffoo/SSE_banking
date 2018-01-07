@@ -220,7 +220,7 @@ router.post('/', function(req, res){
 
 // Check if account is trying to benefit itself
 function checkIfAccountIsRecipient(usernameOwner, usernameRecipient, callback){
-  if(username === usernameToDelete){
+  if(usernameOwner === usernameRecipient){
     errorBody = {
       errorCode: 'Netter Versuch',
       errorMessage: 'Sie können sich nichts selbst überweisen.'
