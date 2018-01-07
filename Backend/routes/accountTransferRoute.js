@@ -144,7 +144,7 @@ router.post('/', function(req, res){
     function(callback) {getSession(transfer.username_owner, callback);},
     function(callback) {
       if(errorBody === null){
-        checkIfAccountIsRecipient(transfer.username_owner, account.username_recipient, callback);
+        checkIfAccountIsRecipient(transfer.username_owner, transfer.username_recipient, callback);
       } else {
         callback();
       }
