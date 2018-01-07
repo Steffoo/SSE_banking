@@ -179,7 +179,7 @@ router.post('/', function(req, res){
 			}
 
 			res.send(resBody);
-		} else if(errorBody === null && info === null){
+		} else if(errorBody != null && info === null){
 			var resBody = {
 				status: false,
 				code: errorBody.errorCode,
