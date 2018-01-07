@@ -6,6 +6,7 @@ import { LoginComponent } from './components/login/login.component';
 import { HomeComponent } from './components/home/home.component';
 import { FormsModule } from '@angular/forms';
 import { AngularFontAwesomeModule } from 'angular-font-awesome';
+import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HttpClient } from '@angular/common/http';
 import { ROUTES } from './app.routes';
@@ -34,6 +35,7 @@ import { RegistryComponent} from './components/registry/registry.component';
     BrowserModule,
     AngularFontAwesomeModule,
     RouterModule.forRoot(ROUTES),
+    HttpModule,
     HttpClientModule
   ],
   providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService],
