@@ -1,10 +1,11 @@
 <div class="login-box">
   <div class="login-text">Bitte melden Sie sich an:</div>
-  <input type="text" class="login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="sendCredentials()" required #nameInput>
-  <input type="password" class="login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="sendCredentials()" required #pwInput>
-  <div class="button-section">
-    <button class="btn-default" (click)="sendCredentials()">Einloggen</button>
-  </div>
+  <input type="text" class="form-control login-input" [(ngModel)]="userNameInput" placeholder="Name" (keyup.enter)="sendCredentials()"
+    required #nameInput>
+  <input type="password" class="form-control login-input" [(ngModel)]="passwordInput" placeholder="Passwort" (keyup.enter)="sendCredentials()"
+    required #pwInput>
+  <a type="submit" class="link-button">
+    <fa name="sign-in" size="2x"></fa><span (click)="sendCredentials()"> Einloggen</span></a>
 </div>
 
 <div [ngClass]="{'visible': !loggedIn && logInTries > 0}" class="unsuccesful">
@@ -14,4 +15,3 @@
     <div>Versuch: {{logInTries}}</div>
   </div>
 </div>
-
