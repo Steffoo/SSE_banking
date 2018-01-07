@@ -17,6 +17,7 @@ import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { TransferComponent } from './components/transfer/transfer.component';
 import { UserAdministrationComponent } from './components/user-administration/user-administration.component';
 import { RegistryComponent} from './components/registry/registry.component';
+import { RestService } from './services/rest-service.service';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,7 @@ import { RegistryComponent} from './components/registry/registry.component';
     HttpModule,
     HttpClientModule
   ],
-  providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService],
+  providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService, RestService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

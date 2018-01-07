@@ -5,24 +5,12 @@
 <form style="margin-top:50px">
   <div class="form-group">
 
-    <h3 class="white">Konto bearbeiten:</h3>
+    <h3 class="white">Konto entsperren:</h3>
+    <input name="accountToUnlockInput" [(ngModel)]="accountToUnlock" />
+    <p class="white">{{unlockResponseMsg}}</p>
 
-    <select>
-    <option>10000 (Steffen Bartsch)</option>
-    <option>10001 (Hamid Ahmetovic)</option>
-    <option>10002 (Christoher Hansen)</option>
-    </select>
-
-    <br><br>
-
-    <div class="form-group">
-      <label class="white" for="amountInput">Betrag</label>
-      <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben">
-      <small id="ibanInputHelp" class="form-text text-muted">Hier können Sie den Finanzstatus eines Kontos ändern</small>
-    </div>
-
-    <a type="submit" class="link-button">
-      <fa name="save" size="2x"></fa><span style="font-size:18pt"> Speichern</span></a>
+    <a type="submit" class="link-button" (click)="onUnlock()">
+      <fa name="unlock" size="2x"></fa><span style="font-size:18pt"> Entsperren</span></a>
   </div>
 </form>
 
@@ -33,16 +21,11 @@
   <div class="form-group">
 
     <h3 class="white">Konto löschen:</h3>
+    <input name="accountToDeleteInput" [(ngModel)]="accountToDelete" />
+    <p class="white">{{deleteResponseMsg}}</p>
+    
 
-    <select>
-      <option>10000 (Steffen Bartsch)</option>
-      <option>10001 (Hamid Ahmetovic)</option>
-      <option>10002 (Christoher Hansen)</option>
-      </select>
-
-    <br><br>
-
-    <a type="submit" class="link-button">
+    <a type="submit" class="link-button" (click)="onDelete()">
       <fa name="times" size="2x"></fa><span style="font-size:18pt"> Löschen</span></a>
   </div>
 </form>

@@ -11,6 +11,15 @@ export class RestService {
 
     constructor(private http: Http) { }
 
+    
+    public unlockAccount(data): Observable<any> {
+        return this.post("/unlockAccount", data);
+    }
+
+    public deleteAccount(data): Observable<any> {
+        return this.post("/deleteAccount", data);
+    }
+
     private get(path: string): Observable<any> {
         path = "http://localhost:3000" + path;
         return this.http.get(path)
@@ -19,6 +28,7 @@ export class RestService {
     }
 
     private post(path: string, data: any): Observable<any> {
+        path = "http://localhost:3000" + path;
         return this.http.post(path, data).map(response => response.json())
             .catch(this.handleError);
     }
