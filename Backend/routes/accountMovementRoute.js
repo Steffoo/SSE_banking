@@ -207,7 +207,7 @@ router.post('/', function(req, res){
 //
 function sendRequestToDatabase(account, callback){
   var select = 'SELECT DATE_FORMAT(movementDate, "%d-%m-%Y") AS movementDate, username_owner, username_recipient, amount, purpose FROM accountmovement ';
-	var where = 'WHERE username_owner = ' + account.username + ' OR username_recipient = ' + account.username + ';';
+	var where = 'WHERE username_owner = "' + account.username + '" OR username_recipient = "' + account.username + '";';
 
 	var query = select + where;
 
