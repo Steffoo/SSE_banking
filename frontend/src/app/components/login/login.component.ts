@@ -15,6 +15,7 @@ export class LoginComponent implements OnInit {
   isLoggedIn: boolean;
   logInTries = 0;
   showWarning: boolean;
+  user;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
@@ -25,23 +26,33 @@ export class LoginComponent implements OnInit {
       }
       this.showWarning = !_logged && this.logInTries > 0;
       if (this.logInTries > 2) {
-        this.loginService.disableAccount();
+        this.loginService.lockAccount();
       }
     });
   }
 
   ngOnInit() {
     // todo delete
-    this.userNameInput = 'TaiTabasco';
-    this.passwordInput = 'ttt';
+    this.userNameInput = 'Steff';
+    this.passwordInput = 'kkkkkkkk';
   }
 
   sendCredentials() {
     if (this.userNameInput && this.passwordInput) {
-      this.logInTries++;
-      this.loginService.login(this.userNameInput, this.passwordInput);
-      // console.log('localstorage', localStorage.getItem('session_banking'));
-      this.router.navigate(['/mainMenu']);
+      // this.logInTries++;
+      const body = {
+        username: this.userNameInput,
+        password: this.passwordInput,
+      };
+      this.loginService.login(body).subscribe(_res => {
+        if (_res.status) {
+          localStorage.setItem('banking_session', _res.sessionID);
+          this.loginService.confirmLogin();
+          this.router.navigate(['/mainMenu']);
+        }
+        console.log('response', _res);
+      });
+      console.log('localstorage', localStorage);
     }
   }
 

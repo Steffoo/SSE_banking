@@ -26,24 +26,8 @@ export class LoginService {
     // this.logged.next(false);
   }
 
-  login(name: string, pw: string) {
-
-    const body = {
-      name: name,
-      password: pw,
-    };
-
-
-    // this.http.post('http://localhost:3000/login', post).subscribe(_response => {
-    //   if (_response && _response.status) {
-    //     this.logged.next(true);
-    //     this.user = _response.user;
-    //     let response = _response;
-    //   }
-    // });
-    // }
-
-    this.confirmLogin();
+  login(body): Observable<any> {
+    return this.http.post(BACKEND_URL + '/login', body);
   }
 
   register(postUserData): Observable<any> {
@@ -55,7 +39,7 @@ export class LoginService {
     return this.isloggedIn;
   }
 
-  disableAccount() {
+  lockAccount() {
     // this.http.get('http://localhost:3000/lock...' ).subscribe(_res => {
     // });
     // todo get zum sperren von konto
@@ -65,13 +49,12 @@ export class LoginService {
   confirmLogin() {
     this.isloggedIn = true;
     this.logged.next(this.isloggedIn);
-    localStorage.setItem('session_banking', this.MockResponse.sessionId);
-    return this.MockResponse;
   }
 
   onLogOut() {
     this.isloggedIn = false;
     this.logged.next(this.isloggedIn);
+    // do not forget to delete sessionID from localstorage
     this.router.navigate(['/home']);
   }
 }

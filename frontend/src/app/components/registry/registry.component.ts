@@ -10,14 +10,14 @@ import {Router} from '@angular/router';
 export class RegistryComponent implements OnInit {
 
   userData = {
-    userNameInput: 'Steff',
-    firstNameInput: 'Steffen',
-    nameInput: 'Bartsch',
-    addressInput: 'dfad',
-    telephonenumberInput: 'adfdag',
-    emailInput: 'dafg@dklfd.com',
-    passwordInput: 'kkkkkkkk',
-    confirmPassword: 'kkkkkkkk',
+    userNameInput: '',
+    firstNameInput: '',
+    nameInput: '',
+    addressInput: '',
+    telephonenumberInput: '',
+    emailInput: '',
+    passwordInput: '',
+    confirmPassword: '',
   };
   isLoggedIn: boolean;
   showWarning: boolean;
