@@ -1,6 +1,5 @@
 <div [ngClass]="{'visible': showWarning}" class="unsuccesful">
-  <div>Anmeldedaten falsch</div>
-  <div>Bitte prüfen Sie ihre Anmeldedaten</div>
+  <div [innerHTML]="warningText"></div>
 </div>
 <div class="login-box">
   <div class="login-text">Zum Registrieren bitte alle Felder ausfüllen</div>

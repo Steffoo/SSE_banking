@@ -21,6 +21,7 @@ export class RegistryComponent implements OnInit {
   };
   isLoggedIn: boolean;
   showWarning: boolean;
+  warningText: string;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
@@ -28,7 +29,6 @@ export class RegistryComponent implements OnInit {
       if (_logged) {
         this.isLoggedIn = _logged;
       }
-      // this.showWarning = !_logged && this.logInTries > 0;
     });
   }
 
@@ -72,14 +72,17 @@ export class RegistryComponent implements OnInit {
 
       this.loginService.register(postUserData).subscribe(_res => {
           if (_res.status) {
-            console.log('response status', _res.status);
+            // console.log('response', _res);
+            this.loginService.confirmLogin();
+            this.router.navigate(['/mainMenu']);
+            this.showWarning = false;
+          } else {
+            this.warningText = 'Benutzername ist bereits vergeben';
+            this.showWarning = true;
           }
         });
-      // todo console.log löschen
-      console.log('localstorage', localStorage.getItem('session_banking'));
-      this.router.navigate(['/mainMenu']);
-      this.showWarning = false;
     } else {
+      this.warningText = `Anmeldedaten falsch <br> Bitte prüfen Sie ihre Anmeldedaten`;
       this.showWarning = true;
     }
   }
