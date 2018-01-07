@@ -4,34 +4,31 @@
 <h3 class="white">Eine Überweisung tätigen:</h3>
 
 <form style="margin-top:50px">
+
   <div class="form-group">
-    <label class="white" for="ibanInput">IBAN</label>
-    <input type="text" class="form-control" id="ibanInput" aria-describedby="emailHelp" placeholder="IBAN eingeben">
-    <small id="ibanInputHelp" class="form-text text-muted">Beispiel IBAN: 16732 (5 Ziffern)</small>
+    <label class="white" for="recipientInput">Name des Empfängers</label>
+    <input class="form-control" id="recipientInput" type="text" name="recipientInput" [(ngModel)]="request.username_recipient"
+      required>
   </div>
 
-  <div>
-    <hr>
+  <div class="form-group">
+    <label class="white" for="amountInput">Betrag</label>
+    <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben" name="amountInput" [(ngModel)]="request.amount"
+      required>
+  </div>
 
-    <div class="form-group">
-      <label class="white" for="recipientInput">Name des Empfängers</label>
-      <input class="form-control" id="recipientInput" type="text" disabled>
-    </div>
-
-    <div class="form-group">
-      <label class="white" for="amountInput">Betrag</label>
-      <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben">
-    </div>
-
-    <div class="form-group">
-      <label class="white" for="amountInput">Verwendungszweck</label>
-      <input class="form-control" id="amountInput" type="text" placeholder="Verwendungszweck eingeben">
-    </div>
-
+  <div class="form-group">
+    <label class="white" for="amountInput">Verwendungszweck</label>
+    <input class="form-control" id="amountInput" type="text" placeholder="Verwendungszweck eingeben" name="purposeInput" [(ngModel)]="request.purpose"
+      required>
   </div>
 
   <br>
 
   <a type="submit" class="link-button">
-    <fa name="exchange" size="2x"></fa><span style="font-size:18pt"> Überweisen</span></a>
+    <fa name="exchange" size="2x"></fa><span style="font-size:18pt" (click)="onTransfer()"> Überweisen</span></a>
+  <p *ngIf="invalidInputs" class="red">Bitte alle Felder ausfüllen.</p>
+  <p *ngIf="success" class="money-green">Überweisung erfolgreich.</p>
+  <p *ngIf="error" class="red">{{errorMsg}}</p>
+
 </form>

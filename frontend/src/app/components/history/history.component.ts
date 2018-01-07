@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { RestService } from '../../services/rest-service.service';
+
 
 @Component({
   selector: 'app-history',
@@ -7,9 +9,25 @@ import { Component, OnInit } from '@angular/core';
 })
 export class HistoryComponent implements OnInit {
 
-  constructor() { }
+  private username = "MattTheAdmin"
+  private movements: any [];
+
+  request = {
+    "username_owner": "MattTheAdmin",
+    "sessionId": 123456
+  };
+
+  constructor(private _restService: RestService) { }
 
   ngOnInit() {
+    this._restService.getAccountMovement(this.request).subscribe(
+      data => {
+        this.movements = data.movements;
+      },
+      err => {
+
+      }
+    );
   }
 
 }

@@ -1,27 +1,42 @@
-<h3 class="white">Guten Tag Christopher Hansen,</h3>
+<h3 class="white">Guten Tag {{user.firstName}} {{user.lastName}},</h3>
 
-<div style="margin-top:50px">
-  <h4 class="white">Ihr Finanzstatus:</h4>
-  <fa name="eur" size="4x" class="pull-left money-green"></fa>
-  <span style="font-size:24pt; margin-left:15px" class="money-green">3561,66 EUR</span>
+<div style="margin-top:50px" class="white">
+  <div class="pull-left" style="display:inline-block">
+    <h4>Ihr Finanzstatus:</h4>
+    <fa name="eur" size="4x" class="pull-left money-green"></fa>
+    <span style="font-size:24pt; margin-left:15px" class="money-green">{{user.balance}} EUR</span>
+  </div>
+
+  <div class="pull-right" style="display:inline-block">
+    <span>Benutzername: {{user.username}}</span><br>
+    <span>E-Mail: {{user.email}}</span><br>
+    <span>Anschrift: {{user.address}}</span><br>
+    <span>Telefon: {{user.telephonenumber}}</span><br>
+  </div>
 </div>
 
-<div class="white" style="margin-top:50px">
+<div class="white pull-left" style="clear:both;display:inline-block;margin-top:150px">
   <h4>Weitere Funktionen:</h4>
   <ul>
     <li>
       Kontoauszug anzeigen:
-      <a routerLink="/history" class="link-button"><fa name="list" size="2x"></fa></a>
+      <a routerLink="/history" class="link-button">
+        <fa name="list" size="2x"></fa>
+      </a>
     </li>
 
     <li>
       Überweisung tätigen:
-      <a routerLink="/transfer" class="link-button"><fa name="exchange" size="2x"></fa></a>
+      <a routerLink="/transfer" class="link-button">
+        <fa name="exchange" size="2x"></fa>
+      </a>
     </li>
 
     <li>
       Konten verwalten (Admin):
-      <a routerLink="/userAdministration" class="link-button"><fa name="users" size="2x"></fa></a>
+      <a routerLink="/userAdministration" class="link-button">
+        <fa name="users" size="2x"></fa>
+      </a>
     </li>
 
   </ul>

@@ -144,7 +144,21 @@ router.post('/', function(req, res){
     function(callback) {getSession(transfer.username_owner, callback);},
     function(callback) {
       if(errorBody === null){
-        checkAmount(transfer,callback);
+        checkIfAccountIsRecipient(transfer.username_owner, transfer.username_recipient, callback);
+      } else {
+        callback();
+      }
+    },
+    function(callback) {
+      if(errorBody === null){
+        checkAmountOwner(transfer,callback);
+      }else{
+        callback();
+      }
+    },
+    function(callback) {
+      if(errorBody === null){
+        checkAmountRecipient(transfer,callback);
       }else{
         callback();
       }
@@ -158,7 +172,14 @@ router.post('/', function(req, res){
     },
     function(callback) {
         if(errorBody === null){
-          updateBalance(transfer, callback);
+          updateBalanceOwner(transfer, callback);
+        } else {
+          callback();
+        }
+    },
+    function(callback) {
+        if(errorBody === null){
+          updateBalanceRecipient(transfer, callback);
         } else {
           callback();
         }
@@ -197,8 +218,21 @@ router.post('/', function(req, res){
     });
 })
 
-var currentAmount;
-function checkAmount(transfer, callback){
+// Check if account is trying to benefit itself
+function checkIfAccountIsRecipient(usernameOwner, usernameRecipient, callback){
+  if(usernameOwner === usernameRecipient){
+    errorBody = {
+      errorCode: 'Netter Versuch',
+      errorMessage: 'Sie können sich nichts selbst überweisen.'
+    }
+  }
+  callback();
+}
+
+var currentAmountOwner;
+function checkAmountOwner(transfer, callback){
+
+  currentAmountOwner = null;
 
   var checkAmount = 'SELECT balance FROM accounts WHERE username ="'+transfer.username_owner+'";';
 
@@ -211,16 +245,16 @@ function checkAmount(transfer, callback){
       callback();
     } else{
       if(result.length != 0){
-        currentAmount = result;
+        currentAmountOwner = result;
         logger.log({
           level: 'info',
-          message: 'Checked current amount in data base: '+JSON.stringify(currentAmount[0].balance)
+          message: 'Checked current amount in data base: '+JSON.stringify(currentAmountOwner[0].balance)
         });
         callback();
       } else {
         errorBody = {
           errorCode: 'User nicht vorhanden',
-          errorMessage: 'Es gibt keinen Benutzer mit diesem Usernamen'
+          errorMessage: 'Es gibt keinen Benutzer mit diesem Usernamen: ' + transfer.username_owner
         }
         callback();
       }
@@ -228,10 +262,76 @@ function checkAmount(transfer, callback){
 })
 }
 
-function updateBalance(transfer, callback){
+var currentAmountRecipient;
+function checkAmountRecipient(transfer, callback){
 
-  var value = parseFloat(transfer.amount) + parseFloat(currentAmount[0].balance);
+  currentAmountRecipient = null;
+
+  var checkAmount = 'SELECT balance FROM accounts WHERE username ="'+transfer.username_recipient+'";';
+
+  connection.query(checkAmount, function(err, result, fields) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+      callback();
+    } else{
+      if(result.length != 0){
+        currentAmountRecipient = result;
+        logger.log({
+          level: 'info',
+          message: 'Checked current amount in data base: '+JSON.stringify(currentAmountRecipient[0].balance)
+        });
+        callback();
+      } else {
+        errorBody = {
+          errorCode: 'User nicht vorhanden',
+          errorMessage: 'Es gibt keinen Benutzer mit diesem Usernamen: ' + transfer.username_recipient
+        }
+        callback();
+      }
+    }
+})
+}
+
+function updateBalanceOwner(transfer, callback){
+
+  var value = parseFloat(currentAmountOwner[0].balance) - parseFloat(transfer.amount);
   var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ="'+transfer.username_owner+'";';
+  connection.query(updateBalance, function(err, result, fields) {
+    if(err){
+      transferStatus = false;
+      logger.log({
+        level: 'error',
+        message: err
+      });
+      callback();
+    } else{
+      if(result.affectedRows != 0){
+        transferStatus = true;
+        logger.log({
+          level: 'info',
+          message: 'Updated balance in data base.'
+        });
+        callback();
+      }else {
+        errorBody = {
+          errorCode: 'Kontostand nicht verändert',
+          errorMessage: 'Der Kontostand konnte nicht verändert werden.'
+        }
+        callback();
+      }
+    }
+
+})
+
+}
+
+function updateBalanceRecipient(transfer, callback){
+
+  var value = parseFloat(transfer.amount) + parseFloat(currentAmountRecipient[0].balance);
+  var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ="'+transfer.username_recipient+'";';
   connection.query(updateBalance, function(err, result, fields) {
     if(err){
       transferStatus = false;
@@ -269,7 +369,7 @@ function sendRequestToDatabase(transfer, callback){
     var date = y.getFullYear()+'/'+m.getMonth()+1+'/'+d.getDate();
 
     var insert = 'INSERT INTO accountmovement (username_owner, username_recipient, amount, purpose, movementDate) '
-    var values = 'VALUES ('+transfer.username_owner+','+transfer.username_recipient+','+transfer.amount+','+transfer.purpose+', "'+date+'");';
+    var values = 'VALUES ("'+transfer.username_owner+'","'+transfer.username_recipient+'",'+transfer.amount+',"'+transfer.purpose+'", "'+date+'");';
 
     var insertQuery = insert+values;
 

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { RestService } from '../../services/rest-service.service';
 
 @Component({
   selector: 'app-main-menu',
@@ -7,9 +8,24 @@ import { Component, OnInit } from '@angular/core';
 })
 export class MainMenuComponent implements OnInit {
 
-  constructor() { }
+  private user = {};
+  private request = {
+    "username" : "MattTheAdmin",
+    "sessionId" : 123456
+  };
+
+  constructor(private _restService: RestService) { }
 
   ngOnInit() {
+    this._restService.getAccount(this.request).subscribe(
+      data => {
+        console.log(data)
+        this.user = data;
+      },
+      err => {
+
+      }
+    );
   }
 
 }
