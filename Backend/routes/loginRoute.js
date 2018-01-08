@@ -224,69 +224,78 @@ function sendRequestToDatabase(account, callback){
 				message: result
 			});
 
-			iban = result[0].iban;
+			if(result.length != 0){
+				iban = result[0].iban;
 
-			if(result[0].locked === 0){
-				var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
+				if(result[0].locked === 0){
+					var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
 
-				if(account.pwd === decrypted){
-					async.series([
-						function(callback) {resetTries(result[0].iban, callback);}
-					], function(err){
-						if (err) {
-	            			logger.log({
-								level: 'error',
-								message: err
-							});
-						}
-
-	        			user = result[0].username;
-
-	        			callback();
-					})
-				} else {
-					if(result[0].triesLeft > 0){
+					if(account.pwd === decrypted){
 						async.series([
-							function(callback) {reduceTries(result[0].iban, (result[0].triesLeft-1), callback);}
+							function(callback) {resetTries(result[0].iban, callback);}
 						], function(err){
 							if (err) {
-	            				logger.log({
+		            			logger.log({
 									level: 'error',
 									message: err
 								});
-	        				}
-
-	        				errorBody = {
-								errorCode: 'Das Passwort ist nicht korrekt',
-								errorMessage: 'Sie haben noch ' + (result[0].triesLeft-1) + ' Versuche.'
 							}
 
-	        				callback();
+		        			user = result[0].username;
+
+		        			callback();
 						})
 					} else {
-						async.series([
-							function(callback) {lockAccount(result[0].iban, callback);}
-						], function(err){
-							if (err) {
-	            				logger.log({
-									level: 'error',
-									message: err
-								});
-	        				}
+						if(result[0].triesLeft > 0){
+							async.series([
+								function(callback) {reduceTries(result[0].iban, (result[0].triesLeft-1), callback);}
+							], function(err){
+								if (err) {
+		            				logger.log({
+										level: 'error',
+										message: err
+									});
+		        				}
 
-	        				errorBody = {
-								errorCode: 'Account gesperrt',
-								errorMessage: 'Sie haben es nicht geschafft sich nach drei versuchen anzumelden.'
-							}
+		        				errorBody = {
+									errorCode: 'Das Passwort ist nicht korrekt',
+									errorMessage: 'Sie haben noch ' + (result[0].triesLeft-1) + ' Versuche.'
+								}
 
-	        				callback();
-						})
+		        				callback();
+							})
+						} else {
+							async.series([
+								function(callback) {lockAccount(result[0].iban, callback);}
+							], function(err){
+								if (err) {
+		            				logger.log({
+										level: 'error',
+										message: err
+									});
+		        				}
+
+		        				errorBody = {
+									errorCode: 'Account gesperrt',
+									errorMessage: 'Sie haben es nicht geschafft sich nach drei versuchen anzumelden.'
+								}
+
+		        				callback();
+							})
+						}
 					}
+				} else {
+					errorBody = {
+						errorCode: 'Account gesperrt',
+						errorMessage: 'Wenden Sie sich an einen Administrator.'
+					}
+
+					callback();
 				}
 			} else {
 				errorBody = {
-					errorCode: 'Account gesperrt',
-					errorMessage: 'Wenden Sie sich an einen Administrator.'
+					errorCode: 'Account nicht verfügbar',
+					errorMessage: 'Es gibt keinen Benutzer mit diesem Namen.'
 				}
 
 				callback();
