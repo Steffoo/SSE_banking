@@ -22,6 +22,7 @@ export class RegistryComponent implements OnInit {
   isLoggedIn: boolean;
   showWarning: boolean;
   warningText: string;
+  success: boolean = false;
 
   constructor(private loginService: LoginService, private router: Router) {
     this.isLoggedIn = false;
@@ -57,6 +58,8 @@ export class RegistryComponent implements OnInit {
   }
 
   sendUserData() {
+    this.success = false;
+
     if (this.validUserData()) {
       // let response = this.loginService.register(this.userData);
       const postUserData = {
@@ -73,21 +76,7 @@ export class RegistryComponent implements OnInit {
       this.loginService.register(postUserData).subscribe(_res => {
         // successful registration
         if (_res.status) {
-          // console.log('response', _res);
-
-          const body = {
-            username: this.userData.userNameInput,
-            password: this.userData.passwordInput,
-          };
-
-          // login when registration is successful
-          this.loginService.login(body).subscribe(_logRes => {
-            if (_logRes.status) {
-              localStorage.setItem('banking_session', _logRes.sessionID);
-              this.loginService.confirmLogin(_logRes.user);
-              this.router.navigate(['/mainMenu']);
-            }
-          });
+          this.success = true;
           this.showWarning = false;
         } else {
           this.warningText = 'Benutzername ist bereits vergeben';

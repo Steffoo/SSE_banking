@@ -7,19 +7,19 @@
 
   <div class="form-group">
     <label class="white" for="recipientInput">Name des Empfängers</label>
-    <input class="form-control" id="recipientInput" type="text" name="recipientInput" [(ngModel)]="request.username_recipient"
+    <input class="form-control" id="recipientInput" type="text" name="recipientInput" [(ngModel)]="userSession.username_recipient"
       required>
   </div>
 
   <div class="form-group">
     <label class="white" for="amountInput">Betrag</label>
-    <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben" name="amountInput" [(ngModel)]="request.amount"
+    <input class="form-control" id="amountInput" type="text" placeholder="Betrag eingeben" name="amountInput" [(ngModel)]="userSession.amount"
       required>
   </div>
 
   <div class="form-group">
     <label class="white" for="amountInput">Verwendungszweck</label>
-    <input class="form-control" id="amountInput" type="text" placeholder="Verwendungszweck eingeben" name="purposeInput" [(ngModel)]="request.purpose"
+    <input class="form-control" id="amountInput" type="text" placeholder="Verwendungszweck eingeben" name="purposeInput" [(ngModel)]="userSession.purpose"
       required>
   </div>
 

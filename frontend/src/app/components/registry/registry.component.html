@@ -4,25 +4,21 @@
 <div class="login-box">
   <div class="login-text">Zum Registrieren bitte alle Felder ausfüllen</div>
   Nachname:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.nameInput" placeholder="Nachname" required #nameInput>
-  Vorname:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.firstNameInput" placeholder="Vorname" required #firstNameInput>
-  Benutzername:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.userNameInput" placeholder="Benutzername" required #userNameInput>
-  Adresse:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.addressInput" placeholder="Adresse" required #addressInput>
-  Telefonnummer:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.telephonenumberInput" placeholder="Telefonnummer" required #telephonenumberInput>
-  Email:
-  <input type="text" class="form-control login-input" [(ngModel)]="userData.emailInput" placeholder="Email" required #emailInput>
-  Passwort (mind. 8 Zeichen):
-  <input type="password" class="form-control login-input" [(ngModel)]="userData.passwordInput" placeholder="Passwort" required #passwordInput>
-  Passwort bestätigen:
-  <input type="password" class="form-control login-input" [(ngModel)]="userData.confirmPassword" placeholder="Passwort bestätigen" required #confirmPassword>
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.nameInput" placeholder="Nachname" required #nameInput>  Vorname:
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.firstNameInput" placeholder="Vorname" required
+    #firstNameInput> Benutzername:
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.userNameInput" placeholder="Benutzername" required
+    #userNameInput> Adresse:
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.addressInput" placeholder="Adresse" required #addressInput>  Telefonnummer:
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.telephonenumberInput" placeholder="Telefonnummer"
+    required #telephonenumberInput> Email:
+  <input type="text" class="form-control login-input" [(ngModel)]="userData.emailInput" placeholder="Email" required #emailInput>  Passwort (mind. 8 Zeichen):
+  <input type="password" class="form-control login-input" [(ngModel)]="userData.passwordInput" placeholder="Passwort" required
+    #passwordInput> Passwort bestätigen:
+  <input type="password" class="form-control login-input" [(ngModel)]="userData.confirmPassword" placeholder="Passwort bestätigen"
+    required #confirmPassword>
 
   <a type="submit" class="link-button">
-      <fa name="user-plus" size="2x"></fa><span (click)="sendUserData()"> Registrieren</span></a>
+    <fa name="user-plus" size="2x"></fa><span (click)="sendUserData()"> Registrieren</span></a>
+  <p *ngIf="success" class="money-green">Überweisung erfolgreich.</p>
 </div>
-
-
-

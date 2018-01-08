@@ -25,12 +25,12 @@ CREATE TABLE IF NOT EXISTS accountmovement (movement_id INT NOT NULL auto_increm
                                             purpose VARCHAR(50),
                                             movementDate Date,
                                             PRIMARY KEY(movement_id, username_owner, username_recipient),
-                                            FOREIGN KEY(username_owner) REFERENCES accounts(username),
-                                            FOREIGN KEY(username_recipient) REFERENCES accounts(username)
+                                            FOREIGN KEY(username_owner) REFERENCES accounts(username) ON DELETE CASCADE ON UPDATE CASCADE,
+                                            FOREIGN KEY(username_recipient) REFERENCES accounts(username) ON DELETE CASCADE ON UPDATE CASCADE
                                           );
 
 CREATE TABLE IF NOT EXISTS sessions (sessionId VARCHAR(50) NOT NULL UNIQUE,
 									username VARCHAR(50) NOT NULL,
 									expirationTime VARCHAR(255) NOT NULL,
 									PRIMARY KEY(username),
-									FOREIGN KEY(username) REFERENCES accounts(username));
+									FOREIGN KEY(username) REFERENCES accounts(username) ON DELETE CASCADE ON UPDATE CASCADE);

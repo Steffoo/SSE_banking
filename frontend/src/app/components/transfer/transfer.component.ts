@@ -1,38 +1,35 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RestService } from '../../services/rest-service.service';
+import { LoginService } from '../../services/login.service';
 
 @Component({
   selector: 'app-transfer',
   templateUrl: './transfer.component.html',
   styleUrls: ['./transfer.component.scss']
 })
-export class TransferComponent implements OnInit {
+export class TransferComponent {
 
   private invalidInputs: boolean = false;
   private errorMsg: String = "";
   private error: boolean = false;
   private success: boolean = false;
 
-  private request = {
-    username_owner: "ChristopherHansen",
+  private userSession = {
+    username_owner: this._loginService.getLoggedInUser().username,
     username_recipient: "",
     amount: 0.00,
     purpose: "",
-    sessionId: 123456
+    sessionId: localStorage.getItem('banking_session')
   }
 
-  constructor(private _restService: RestService) { }
-
-  ngOnInit() {
-
-  }
+  constructor(private _restService: RestService, private _loginService: LoginService) { }
 
   onTransfer(): void {
     this.success = false;
     this.invalidInputs = false;
 
-    if(this.request.username_recipient && this.request.amount && this.request.purpose){
-      this._restService.accountTransfer(this.request).subscribe(
+    if(this.userSession.username_recipient && this.userSession.amount && this.userSession.purpose){
+      this._restService.accountTransfer(this.userSession).subscribe(
         data => {
             if(data.status){
               this.error = false;

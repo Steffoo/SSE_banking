@@ -52,4 +52,8 @@ export class LoginService {
     // do not forget to delete sessionID from localstorage
     this.router.navigate(['/home']);
   }
+
+  getLoggedInUser(): User {
+    return this.user;
+  }
 }

@@ -134,7 +134,7 @@ router.post('/', function(req, res){
 	content = null;
 
 	var account = {
-		username: req.body.username_owner,
+		username: req.body.username,
 		sessionId: req.body.sessionId
 	}
 
@@ -275,7 +275,6 @@ function getSession(username, callback){
 				level: 'info',
 				message: result
 			});
-
 			if(time <= parseInt(result[0].expirationTime)){
 				async.series([
 					function(callback) {increaseExpirationTime(username, callback);}

@@ -238,7 +238,7 @@ function sendRequestToDatabase(account, callback){
 								level: 'error',
 								message: err
 							});
-	        			}
+						}
 
 	        			user = result[0].username;
 

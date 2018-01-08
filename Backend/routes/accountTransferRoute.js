@@ -136,7 +136,12 @@ router.post('/', function(req, res){
     amount: req.body.amount,
     purpose: req.body.purpose,
     sessionId: req.body.sessionId
-	}
+  }
+  
+  console.log(transfer.username_owner)
+  console.log(transfer.username_recipient)
+  console.log(transfer.amount)
+  console.log(transfer.purpose)
 
 	async.series([
     function(callback) {readSecretFile(callback);},
