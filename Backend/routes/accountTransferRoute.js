@@ -49,75 +49,75 @@ const levels = {
 }
 
 const logger = winston.createLogger({
-	transports: [
-		new winston.transports.File({filename: logFile}),
-		new winston.transports.Console({timestamp: true})
-	]
+  transports: [
+    new winston.transports.File({filename: logFile}),
+    new winston.transports.Console({timestamp: true})
+  ]
 });
 
 // Reads the secret file
 function readSecretFile(callback){
-	jsonFile.readFile(secretFile, function(err, obj) {
-		if(err){
-			logger.log({
-				level: 'error',
-				message: err
-			});
-		}else{
-			aesKey = obj.passphrase;
+  jsonFile.readFile(secretFile, function(err, obj) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+    }else{
+      aesKey = obj.passphrase;
 
-			logger.log({
-				level: 'info',
-				message: 'Successfully read secret file.'
-			});
+      logger.log({
+        level: 'info',
+        message: 'Successfully read secret file.'
+      });
 
-			callback();
-		}
-	})
+      callback();
+    }
+  })
 }
 
 // Reads the data base file
 function readDatabaseFile(callback){
-	jsonFile.readFile(databaseFile, function(err, obj) {
-		if(err){
-			logger.log({
-				level: 'error',
-				message: err
-			});
-		}else{
-			var decrypted = cryptoJS.AES.decrypt(obj.password, aesKey).toString(cryptoJS.enc.Utf8);
+  jsonFile.readFile(databaseFile, function(err, obj) {
+    if(err){
+      logger.log({
+        level: 'error',
+        message: err
+      });
+    }else{
+      var decrypted = cryptoJS.AES.decrypt(obj.password, aesKey).toString(cryptoJS.enc.Utf8);
 
-			logger.log({
-				level: 'info',
-				message: 'Successfully read data base file.'
-			});
+      logger.log({
+        level: 'info',
+        message: 'Successfully read data base file.'
+      });
 
-			connection = mysql.createConnection({
-				host: obj.host,
-				user: obj.user,
-				password: decrypted,
-				database: obj.database
-			});
+      connection = mysql.createConnection({
+        host: obj.host,
+        user: obj.user,
+        password: decrypted,
+        database: obj.database
+      });
 
-			// Open connection and send query to database
-			connection.connect(function(err){
-				if(err){
-					logger.log({
-						level: 'error',
-						message: err
-					});
-					throw err;
-				}
+      // Open connection and send query to database
+      connection.connect(function(err){
+        if(err){
+          logger.log({
+            level: 'error',
+            message: err
+          });
+          throw err;
+        }
 
-				logger.log({
-					level: 'info',
-					message: 'Connection established.'
-				});
-			});
+        logger.log({
+          level: 'info',
+          message: 'Connection established.'
+        });
+      });
 
-			callback();
-		}
-	})
+      callback();
+    }
+  })
 }
 
 
@@ -131,22 +131,17 @@ router.post('/', function(req, res){
   errorBody = null;
 
   var transfer = {
-		username_owner: req.body.username_owner,
+    username_owner: req.body.username_owner,
     username_recipient: req.body.username_recipient,
     amount: req.body.amount,
     purpose: req.body.purpose,
     sessionId: req.body.sessionId
   }
-  
-  console.log(transfer.username_owner)
-  console.log(transfer.username_recipient)
-  console.log(transfer.amount)
-  console.log(transfer.purpose)
 
-	async.series([
+  async.series([
     function(callback) {readSecretFile(callback);},
     function(callback) {readDatabaseFile(callback);},
-    function(callback) {getSession(transfer.username_owner, callback);},
+    function(callback) {getSession(transfer.username, transfer.sessionId, callback);},
     function(callback) {
       if(errorBody === null){
         checkIfAccountIsRecipient(transfer.username_owner, transfer.username_recipient, callback);
@@ -192,21 +187,20 @@ router.post('/', function(req, res){
     ], function(err) {
       if (err) {
         logger.log({
-		      level: 'error',
-				  message: err
-			  });
+          level: 'error',
+          message: err
+        });
       }
       connection.end(function(err) {
-  			logger.log({
-				level: 'info',
-				message: 'Data base connection terminated.'
-			});
-		});
+        logger.log({
+        level: 'info',
+        message: 'Data base connection terminated.'
+      });
+    });
 
       if(errorBody === null){
         var resBody = {
-          status: transferStatus,
-          sessionId: id
+          status: transferStatus
         }
 
         res.send(resBody);
@@ -214,8 +208,7 @@ router.post('/', function(req, res){
         var resBody = {
           status: false,
           code: errorBody.errorCode,
-          message: errorBody.errorMessage,
-          sessionId: id
+          message: errorBody.errorMessage
         }
 
         res.send(resBody);
@@ -382,29 +375,29 @@ function sendRequestToDatabase(transfer, callback){
       if(err){
         transferStatus = false;
         logger.log({
-  				level: 'error',
-  				message: err
-  			});
+          level: 'error',
+          message: err
+        });
         callback();
-  		} else{
+      } else{
         transferStatus = true;
-  			logger.log({
-  				level: 'info',
-  				message: 'Inserted movement in data base.'
-  			});
+        logger.log({
+          level: 'info',
+          message: 'Inserted movement in data base.'
+        });
         callback();
-  		}
-	})
+      }
+  })
 
 }
 
 // Gets the sessionID
-function getSession(username, callback){
+function getSession(username, sessionId, callback){
   var date = new Date();
   var time = date.getTime();
 
   var select = 'SELECT sessionId, expirationTime FROM sessions ';
-  var where = 'WHERE username="' + username + '";';
+  var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
   var query = select + where;
 
@@ -429,7 +422,7 @@ function getSession(username, callback){
 
       if(time <= parseInt(result[0].expirationTime)){
         async.series([
-          function(callback) {increaseExpirationTime(username, callback);}
+          function(callback) {increaseExpirationTime(username, sessionId, callback);}
         ], function(err){
           if (err) {
                   logger.log({
@@ -454,7 +447,7 @@ function getSession(username, callback){
 }
 
 // Increases the expiration time of a session
-function increaseExpirationTime(username, callback){
+function increaseExpirationTime(username, sessionId, callback){
   var date = new Date();
   var time = date.getTime();
   var tenMinutesMiliS = 600000;
@@ -462,7 +455,7 @@ function increaseExpirationTime(username, callback){
 
   var update = 'UPDATE sessions ';
   var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
-  var where = 'WHERE username="' + username + '";';
+  var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
   var query = update + set + where;
 

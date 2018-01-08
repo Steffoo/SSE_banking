@@ -142,7 +142,7 @@ router.post('/', function(req, res){
 	async.series([
         function(callback) {readSecretFile(callback);},
         function(callback) {readDatabaseFile(callback);},
-        function(callback) {getSession(account.username, callback);},
+        function(callback) {getSession(account.username, account.sessionId, callback);},
         function(callback) {
         	if(errorBody === null){
         		checkPassword(account.username, account.pwd, callback);
@@ -196,12 +196,12 @@ router.post('/', function(req, res){
 })
 
 // Gets the sessionID
-function getSession(username, callback){
+function getSession(username, sessionId, callback){
 	var date = new Date();
 	var time = date.getTime();
 
 	var select = 'SELECT sessionId, expirationTime FROM sessions ';
-	var where = 'WHERE username="' + username + '";';
+	var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
 	var query = select + where;
 
@@ -226,7 +226,7 @@ function getSession(username, callback){
 
 			if(time <= parseInt(result[0].expirationTime)){
 				async.series([
-					function(callback) {increaseExpirationTime(username, callback);}
+					function(callback) {increaseExpirationTime(username, sessionId, callback);}
 				], function(err){
 					if (err) {
 			            logger.log({
@@ -251,7 +251,7 @@ function getSession(username, callback){
 }
 
 // Increases the expiration time of a session
-function increaseExpirationTime(username, callback){
+function increaseExpirationTime(username, sessionId, callback){
 	var date = new Date();
 	var time = date.getTime();
 	var tenMinutesMiliS = 600000;
@@ -259,7 +259,7 @@ function increaseExpirationTime(username, callback){
 
 	var update = 'UPDATE sessions ';
 	var set = 'SET expirationTime=' + sessionTime.toString() + ' ';
-	var where = 'WHERE username="' + username + '";';
+	var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
 	var query = update + set + where;
 
