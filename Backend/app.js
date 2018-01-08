@@ -17,6 +17,7 @@ const app = express();
 var frontendDir;
 const logFile = './data/log/server.log';
 const databaseFile = './data/secret/database_info.json';
+const secretFile = './data/secret/secret.json';
 
 
 /**********/
@@ -142,6 +143,7 @@ function writeToDataBaseFile(){
 /* Request handling */
 /********************/
 app.use(express.static(path.join(__dirname, frontendDir)));
+app.use('/accountMovement', accountMovementRoute);
 app.use('/login', loginRoute);
 app.use('/register', registerRoute);
 app.use('/profile', profileRoute);
@@ -151,6 +153,15 @@ app.use('/unlockAccount', unlockAccountRoute);
 app.use('/deleteAccount', deleteAccountRoute);
 app.use('/accountTransfer', accountTransferRoute);
 app.use('/accountMovement', accountMovementRoute);
+
+app.get('/mainMenu', (req, res) => {
+	logger.log({
+		level: 'info',
+		message: 'Redirecting to ' + req.query.fwd
+	});
+	res.redirect(req.query.fwd);
+})
+
 
 
 /************/
