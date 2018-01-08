@@ -2,6 +2,7 @@
 /* Required modules */
 /********************/
 const express = require('express');
+var cors = require('cors');
 const path = require('path');
 const winston = require('winston');
 const bodyParser = require('body-parser');
@@ -49,6 +50,7 @@ const accountTransferRoute = require('./routes/accountTransferRoute.js');
 /******************/
 /* Configurations */
 /******************/
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -84,11 +86,11 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 	frontendDir = '../frontend/src';
 }
 
-app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
+// app.use(function(req, res, next) {
+//   res.header("Access-Control-Allow-Origin", "*");
+//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//   next();
+// });
 
 
 /******************/
