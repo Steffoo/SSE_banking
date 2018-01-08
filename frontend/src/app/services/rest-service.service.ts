@@ -11,6 +11,10 @@ export class RestService {
 
     constructor(private http: Http) { }
 
+    public forward(path) {
+        return this.get(path + "?fwd=localhost:4200" + path);
+    }
+
     public getAccount(data) {
         return this.post("/profile", data);
     }

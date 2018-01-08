@@ -18,7 +18,7 @@ export class MainMenuComponent implements OnInit {
       username: this.loginService.getLoggedInUser().username,
       sessionId: localStorage.getItem('banking_session')
     };
-
+    
     this._restService.getAccount(userSession).subscribe(
       data => {
         console.log('user profile', data);

@@ -32,7 +32,8 @@
       </a>
     </li>
 
-    <li>
+    <!-- Admin-View, visible only to the user 'MattTheAdmin' -->
+    <li [hidden]="user.username != 'MattTheAdmin'">
       Konten verwalten (Admin):
       <a routerLink="/userAdministration" class="link-button">
         <fa name="users" size="2x"></fa>

@@ -16,8 +16,11 @@ import { HistoryComponent } from './components/history/history.component';
 import { MainMenuComponent } from './components/main-menu/main-menu.component';
 import { TransferComponent } from './components/transfer/transfer.component';
 import { UserAdministrationComponent } from './components/user-administration/user-administration.component';
-import { RegistryComponent} from './components/registry/registry.component';
+import { RegistryComponent } from './components/registry/registry.component';
 import { RestService } from './services/rest-service.service';
+import { CustExtBrowserXhr } from './services/xhr-request.service';
+import { BrowserXhr } from "@angular/http";
+import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -28,8 +31,7 @@ import { RestService } from './services/rest-service.service';
     HistoryComponent,
     TransferComponent,
     UserAdministrationComponent,
-    RegistryComponent,
-
+    RegistryComponent
   ],
   imports: [
     FormsModule,
@@ -39,7 +41,9 @@ import { RestService } from './services/rest-service.service';
     HttpModule,
     HttpClientModule
   ],
-  providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService, RestService],
+  providers: [HttpClientModule, LoginService, HttpClient, RouteGuardService, RestService,
+    {provide: BrowserXhr, useClass:CustExtBrowserXhr},
+    {provide: LocationStrategy, useClass: HashLocationStrategy}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

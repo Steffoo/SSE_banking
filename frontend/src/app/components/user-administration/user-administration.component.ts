@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { RestService } from '../../services/rest-service.service';
+import { LoginService } from '../../services/login.service';
 
 @Component({
   selector: 'app-user-administration',
   templateUrl: './user-administration.component.html',
   styleUrls: ['./user-administration.component.scss']
 })
-export class UserAdministrationComponent implements OnInit {
+export class UserAdministrationComponent {
 
   accountToEdit = "";
   accountToUnlock = "";
@@ -15,26 +16,30 @@ export class UserAdministrationComponent implements OnInit {
   deleteResponseMsg = "";
   unlockResponseMsg = "";
 
-  request = {
-    "username": "MattTheAdmin",
-    "sessionId": "blabla"
+  userSession = {
+    username: this._loginService.getLoggedInUser().username,
+    sessionId: localStorage.getItem('banking_session')
   };
 
-  constructor(private _restService: RestService) { }
+  constructor(private _restService: RestService, private _loginService: LoginService) { }
 
-  ngOnInit() {
-  }
-
-  onEdit(): void {
-
+  onForward() {
+    this._restService.forward("/mainMenu").subscribe(
+      data => {
+        console.log("Forwarding...");
+      },
+      err => {
+        console.log("Error while Forwarding...");
+      }
+    )
   }
 
   onUnlock(): void {
-    this.request["usernameToUnlock"] = this.accountToUnlock;
+    this.userSession["usernameToUnlock"] = this.accountToUnlock;
 
-    this._restService.deleteAccount(this.request).subscribe(
+    this._restService.deleteAccount(this.userSession).subscribe(
       data => {
-       this.unlockResponseMsg = data.message;
+        this.unlockResponseMsg = data.message;
       },
       err => {
 
@@ -43,9 +48,9 @@ export class UserAdministrationComponent implements OnInit {
   }
 
   onDelete(): void {
-    this.request["usernameToDelete"] = this.accountToDelete;
+    this.userSession["usernameToDelete"] = this.accountToDelete;
 
-    this._restService.deleteAccount(this.request).subscribe(
+    this._restService.deleteAccount(this.userSession).subscribe(
       data => {
         if (data.user) {
           this.deleteResponseMsg = "Benutzer " + this.accountToDelete + " wurde erfolgreich gelöscht."

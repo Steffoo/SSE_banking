@@ -50,7 +50,7 @@ const accountTransferRoute = require('./routes/accountTransferRoute.js');
 /******************/
 /* Configurations */
 /******************/
-app.use(cors());
+app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
