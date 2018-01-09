@@ -50,7 +50,6 @@ const accountTransferRoute = require('./routes/accountTransferRoute.js');
 /******************/
 /* Configurations */
 /******************/
-app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -85,6 +84,22 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 
 	frontendDir = '../frontend/src';
 }
+
+var originsWhitelist = [
+  'http://localhost:4200',
+];
+
+var corsOptions = {
+  	origin: function(origin, callback){
+        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+        callback(null, isWhitelisted);
+  	},
+  	credentials:true
+}
+
+app.use(cors(corsOptions));
+
+//app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
 
 // app.use(function(req, res, next) {
 //   res.header("Access-Control-Allow-Origin", "*");
