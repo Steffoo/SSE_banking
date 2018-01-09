@@ -94,7 +94,8 @@ var corsOptions = {
         var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
         callback(null, isWhitelisted);
   	},
-  	credentials:true
+  	credentials:true,
+  	optionsSuccessStatus: 200
 }
 
 app.use(cors(corsOptions));
