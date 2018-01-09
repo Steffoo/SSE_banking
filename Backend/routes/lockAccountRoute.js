@@ -190,7 +190,6 @@ router.post('/', function(req, res){
 		if(errorBody === null && info === null){
 			var resBody = {
 				status: true,
-				sessionID: id,
 				user: {
 					iban: iban,
 					username: account.username
@@ -209,8 +208,7 @@ router.post('/', function(req, res){
 		} else if(errorBody === null && info != null){
 			var resBody = {
 				status: true,
-				message: info,
-				sessionID: id
+				message: info
 			}
 
 			res.send(resBody);
