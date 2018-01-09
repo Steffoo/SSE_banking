@@ -85,22 +85,22 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 	frontendDir = '../frontend/src';
 }
 
-var originsWhitelist = [
-  'http://localhost:4200',
-];
+// // var originsWhitelist = [
+// //   'http://localhost:4200',
+// // ];
 
-var corsOptions = {
-  	origin: function(origin, callback){
-        var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
-        callback(null, isWhitelisted);
-  	},
-  	credentials:true,
-  	optionsSuccessStatus: 200
-}
+// var corsOptions = {
+//   	// origin: function(origin, callback){
+//    //      var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+//    //      callback(null, isWhitelisted);
+//   	// },
+//   	credentials:true,
+//   	optionsSuccessStatus: 200
+// }
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
-//app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
+app.use(cors({credentials: true, origin: 'http://141.19.152.95:4200'}));
 
 // app.use(function(req, res, next) {
 //   res.header("Access-Control-Allow-Origin", "*");
@@ -187,9 +187,9 @@ app.get('/mainMenu', (req, res) => {
 /************/
 app.set('port', 3000);
 
-app.listen(app.get('port'), function(){
+app.listen(app.get('port'), ipAddress, function(){
 	logger.log({
 		level: 'info',
-		message: 'Listening on port ' + app.get('port')
+		message: 'Listening on ip ' + ipAddress + ' and port ' + app.get('port')
 	});
 })

@@ -141,7 +141,7 @@ router.post('/', function(req, res){
   async.series([
     function(callback) {readSecretFile(callback);},
     function(callback) {readDatabaseFile(callback);},
-    function(callback) {getSession(transfer.username, transfer.sessionId, callback);},
+    function(callback) {getSession(transfer.username_owner, transfer.sessionId, callback);},
     function(callback) {
       if(errorBody === null){
         checkIfAccountIsRecipient(transfer.username_owner, transfer.username_recipient, callback);

@@ -12,7 +12,7 @@ export class RestService {
     constructor(private http: Http) { }
 
     public forward(path) {
-        return this.get(path + "?fwd=localhost:4200" + path);
+        return this.get(path + "?fwd=http://141.19.152.95:4200" + path);
     }
 
     public getAccount(data) {
@@ -36,14 +36,14 @@ export class RestService {
     }
 
     private get(path: string): Observable<any> {
-        path = "http://localhost:3000" + path;
+        path = "http://141.19.152.95:3000" + path;
         return this.http.get(path)
             .map(response => response.json())
             .catch(this.handleError);
     }
 
     private post(path: string, data: any): Observable<any> {
-        path = "http://localhost:3000" + path;
+        path = "http://141.19.152.95:3000" + path;
         return this.http.post(path, data).map(response => response.json())
             .catch(this.handleError);
     }
