@@ -24,20 +24,14 @@ export class LoginService {
   }
 
   register(postUserData): Observable<any> {
-    console.log('userdata', postUserData);
-      return this.http.post(BACKEND_URL + '/register', postUserData);
+    // console.log('userdata', postUserData);
+    return this.http.post(BACKEND_URL + '/register', postUserData);
   }
 
   getLogStatus() {
     return this.isloggedIn;
   }
 
-  lockAccount() {
-    // this.http.get('http://localhost:3000/lock...' ).subscribe(_res => {
-    // });
-    // todo get zum sperren von konto
-    console.log('disable Account');
-  }
 
   confirmLogin(user) {
     this.user = new User(user);
@@ -49,11 +43,19 @@ export class LoginService {
   onLogOut() {
     this.isloggedIn = false;
     this.logged.next(this.isloggedIn);
-    // do not forget to delete sessionID from localstorage
+    localStorage.removeItem('banking_session');
+    localStorage.removeItem('banking_username');
     this.router.navigate(['/home']);
   }
 
   getLoggedInUser(): User {
     return this.user;
   }
+
+  loginWithSession(body): Observable<any> {
+    // console.log('try with session', body);
+    return this.http.post(BACKEND_URL + '/profile', body);
+  }
+
+
 }

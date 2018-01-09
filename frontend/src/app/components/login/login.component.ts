@@ -43,6 +43,7 @@ export class LoginComponent implements OnInit {
         if (_res.status) {
           this.showWarning = false;
           localStorage.setItem('banking_session', _res.sessionID);
+          localStorage.setItem('banking_username', _res.user.username);
           this.loginService.confirmLogin(_res.user);
           this.router.navigate(['/mainMenu']);
         } else {
