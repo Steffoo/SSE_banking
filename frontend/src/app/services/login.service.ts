@@ -6,7 +6,8 @@ import {Router} from '@angular/router';
 import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/observable/of';
 
-const BACKEND_URL = 'http://141.19.152.95:3000';
+const BACKEND_URL = 'http://localhost:3000';
+// const URL_BACKEND = 'http://141.19.152.95:3000';
 
 @Injectable()
 export class LoginService {

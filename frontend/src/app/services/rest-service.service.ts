@@ -5,6 +5,8 @@ import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/observable/throw';
 
+const URL_BACKEND = 'http://localhost:3000';
+// const URL_BACKEND = 'http://141.19.152.95:3000';
 
 @Injectable()
 export class RestService {
@@ -36,14 +38,14 @@ export class RestService {
     }
 
     private get(path: string): Observable<any> {
-        path = "http://141.19.152.95:3000" + path;
+        path = URL_BACKEND + path;
         return this.http.get(path)
             .map(response => response.json())
             .catch(this.handleError);
     }
 
     private post(path: string, data: any): Observable<any> {
-        path = "http://141.19.152.95:3000" + path;
+        path = URL_BACKEND + path;
         return this.http.post(path, data).map(response => response.json())
             .catch(this.handleError);
     }

@@ -25,8 +25,8 @@ const secretFile = './data/secret/secret.json';
 /* Fields */
 /**********/
 var databaseInformation;
-var ipAddress = ip.address();
-
+// var ipAddress = ip.address();
+var ipAddress = '127.0.0.1';
 
 /****************************/
 /* Account functions routes */
@@ -50,6 +50,8 @@ const accountTransferRoute = require('./routes/accountTransferRoute.js');
 /******************/
 /* Configurations */
 /******************/
+// app.use(cors());
+app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -85,28 +87,28 @@ if(process.env['RUNNING_VIA_DOCKER']) {
 	frontendDir = '../frontend/src';
 }
 
-// // var originsWhitelist = [
-// //   'http://localhost:4200',
-// // ];
+// var originsWhitelist = [
+//   'http://localhost:4200',
+// ];
 
 // var corsOptions = {
-//   	// origin: function(origin, callback){
-//    //      var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
-//    //      callback(null, isWhitelisted);
-//   	// },
+//   	origin: function(origin, callback){
+//         var isWhitelisted = originsWhitelist.indexOf(origin) !== -1;
+//         callback(null, isWhitelisted);
+//   	},
 //   	credentials:true,
 //   	optionsSuccessStatus: 200
 // }
-
-// app.use(cors(corsOptions));
-
-app.use(cors({credentials: true, origin: 'http://141.19.152.95:4200'}));
 
 // app.use(function(req, res, next) {
 //   res.header("Access-Control-Allow-Origin", "*");
 //   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 //   next();
 // });
+
+
+// app.use(cors({credentials: true, origin: 'http://141.19.152.95:4200'}));
+// app.use(cors({credentials: true, origin: 'http://localhost:4200'}));
 
 
 /******************/
