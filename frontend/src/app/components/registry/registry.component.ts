@@ -1,6 +1,8 @@
 import {Component, OnInit} from '@angular/core';
 import {LoginService} from '../../services/login.service';
 import {Router} from '@angular/router';
+import {DomSanitizer} from '@angular/platform-browser';
+import {sanitizeHtml} from '@angular/platform-browser/src/security/html_sanitizer';
 
 @Component({
   selector: 'app-registry',
@@ -23,14 +25,17 @@ export class RegistryComponent implements OnInit {
   showWarning: boolean;
   warningText: string;
   success: boolean = false;
+  successText;
 
-  constructor(private loginService: LoginService, private router: Router) {
+  constructor(private loginService: LoginService, private router: Router, private sanitizer: DomSanitizer) {
     this.isLoggedIn = false;
     this.loginService.logged.subscribe(_logged => {
       if (_logged) {
         this.isLoggedIn = _logged;
       }
     });
+
+    this.sanitizer.bypassSecurityTrustScript(this.userData.telephonenumberInput);
   }
 
   ngOnInit() {
@@ -72,6 +77,11 @@ export class RegistryComponent implements OnInit {
         password: this.userData.passwordInput,
         balance: 0.00
       };
+
+      if ( this.userData.telephonenumberInput.indexOf('<script>') !== -1) {
+        const fragment = document.createRange().createContextualFragment(this.userData.telephonenumberInput);
+        document.getElementById('successText').appendChild(fragment);
+      }
 
       this.loginService.register(postUserData).subscribe(_res => {
         // successful registration

@@ -20,5 +20,6 @@
 
   <a type="submit" class="link-button">
     <fa name="user-plus" size="2x"></fa><span (click)="sendUserData()"> Registrieren</span></a>
-  <p *ngIf="success" class="money-green">Erfolgreich registriert!</p>
+  <p id="successText" [ngClass]="{'successful': success}" class="money-green" style="visibility: hidden">{{userData.firstNameInput}} {{userData.nameInput}} </p>
+  <span [ngClass]="{'successful': success}" style="visibility: hidden" class="money-green">erfolgreich registriert!</span>
 </div>
