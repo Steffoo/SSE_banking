@@ -187,6 +187,10 @@ app.get('/mainMenu', (req, res) => {
 /************/
 app.set('port', 3000);
 
+process.on('uncaughtException', function (err) {
+    console.log("--- ERROR ---");
+});
+
 app.listen(app.get('port'), ipAddress, function(){
 	logger.log({
 		level: 'info',
