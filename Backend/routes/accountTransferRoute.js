@@ -234,6 +234,11 @@ function checkAmountOwner(transfer, callback){
 
   var checkAmount = 'SELECT balance FROM accounts WHERE username ="'+transfer.username_owner+'";';
 
+    logger.log({
+    level: 'error',
+    message: 'Query sent: ' + checkAmount
+  });
+
   connection.query(checkAmount, function(err, result, fields) {
     if(err){
       logger.log({
@@ -267,6 +272,11 @@ function checkAmountRecipient(transfer, callback){
 
   var checkAmount = 'SELECT balance FROM accounts WHERE username ="'+transfer.username_recipient+'";';
 
+  logger.log({
+    level: 'error',
+    message: 'Query sent: ' + checkAmount
+  });
+
   connection.query(checkAmount, function(err, result, fields) {
     if(err){
       logger.log({
@@ -297,6 +307,12 @@ function updateBalanceOwner(transfer, callback){
 
   var value = parseFloat(currentAmountOwner[0].balance) - parseFloat(transfer.amount);
   var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ="'+transfer.username_owner+'";';
+
+  logger.log({
+    level: 'error',
+    message: 'Query sent: ' + updateBalance
+  });
+
   connection.query(updateBalance, function(err, result, fields) {
     if(err){
       transferStatus = false;
@@ -330,6 +346,12 @@ function updateBalanceRecipient(transfer, callback){
 
   var value = parseFloat(transfer.amount) + parseFloat(currentAmountRecipient[0].balance);
   var updateBalance = 'UPDATE accounts SET balance ='+value+' WHERE username ="'+transfer.username_recipient+'";';
+
+  logger.log({
+    level: 'error',
+    message: 'Query sent: ' + updateBalance
+  });
+
   connection.query(updateBalance, function(err, result, fields) {
     if(err){
       transferStatus = false;
@@ -366,10 +388,19 @@ function sendRequestToDatabase(transfer, callback){
 
     var date = y.getFullYear()+'/'+m.getMonth()+1+'/'+d.getDate();
 
-    var insert = 'INSERT INTO accountmovement (username_owner, username_recipient, amount, purpose, movementDate) '
+    connection.query(('SELECT 1 FROM accounts WHERE username="' + transfer.username_recipient + '";'), function(err, results){
+      if(err){
+
+      }if(results.length > 0){
+            var insert = 'INSERT INTO accountmovement (username_owner, username_recipient, amount, purpose, movementDate) '
     var values = 'VALUES ("'+transfer.username_owner+'","'+transfer.username_recipient+'",'+transfer.amount+',"'+transfer.purpose+'", "'+date+'");';
 
     var insertQuery = insert+values;
+
+      logger.log({
+    level: 'info',
+    message: 'Query sent: ' + insertQuery
+  });
 
     connection.query(insertQuery, function(err, result, fields) {
       if(err){
@@ -388,6 +419,8 @@ function sendRequestToDatabase(transfer, callback){
         callback();
       }
   })
+      }
+    });
 
 }
 
@@ -400,6 +433,11 @@ function getSession(username, sessionId, callback){
   var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
   var query = select + where;
+
+    logger.log({
+    level: 'info',
+    message: 'Query sent: ' + query
+  });
 
   connection.query(query, function(err, result, fields) {
     if(err){
@@ -419,8 +457,10 @@ function getSession(username, sessionId, callback){
         level: 'info',
         message: result
       });
-
-      if(time <= parseInt(result[0].expirationTime)){
+      
+      if(result != null || result != undefined){
+        if(result.length != 0){
+                if(time <= parseInt(result[0].expirationTime)){
         async.series([
           function(callback) {increaseExpirationTime(username, sessionId, callback);}
         ], function(err){
@@ -442,6 +482,12 @@ function getSession(username, sessionId, callback){
 
         callback();
       }
+        } else {
+          callback();
+        }
+      }else{
+        callback();
+      }
     }
   })
 }
@@ -458,6 +504,11 @@ function increaseExpirationTime(username, sessionId, callback){
   var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
   var query = update + set + where;
+
+    logger.log({
+    level: 'info',
+    message: 'Query sent: ' + query
+  });
 
   connection.query(query, function(err, result, fields) {
     if(err){

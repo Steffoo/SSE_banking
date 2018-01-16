@@ -39,16 +39,16 @@ var connection;
 /* Configurations */
 /******************/
 router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.urlencoded({ extended: false })); 
 
-const levels = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  verbose: 3,
-  debug: 4,
-  silly: 5
-}
+const levels = { 
+  error: 0, 
+  warn: 1, 
+  info: 2, 
+  verbose: 3, 
+  debug: 4, 
+  silly: 5 
+} 
 
 const logger = winston.createLogger({
 	transports: [
@@ -312,6 +312,11 @@ function reduceTries(iban, triesLeft, callback){
 
 	var query = update + set + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -344,6 +349,11 @@ function resetTries(iban, callback){
 
 	var query = update + set + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -375,6 +385,11 @@ function lockAccount(iban, callback){
 	var where = 'WHERE iban="' + iban + '";';
 
 	var query = update + set + where;
+
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -456,6 +471,11 @@ function checkForExistingSessions(user, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -482,7 +502,7 @@ function checkForExistingSessions(user, callback){
 			callback();
 		}
 	})
-}
+} 
 
 // Renew session
 function renewSession(user, sessionTime, callback){
@@ -491,6 +511,11 @@ function renewSession(user, sessionTime, callback){
 	var where = 'WHERE username="' + user + '";';
 
 	var query = update + set + where;
+
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -518,14 +543,18 @@ function renewSession(user, sessionTime, callback){
 
 // Creates a new session
 function createNewSession(user, sessionTime, callback){
-	//var id = createSessionID();
-
-  console.log(id);
+	var id = createSessionID();
+	console.log(id);
 
 	var insert = 'INSERT INTO sessions (sessionId, username, expirationTime) ';
-	var values = 'VALUES ("'+ EncodeSessionId(user) + '","' + user + '","' + sessionTime.toString() + '");'
+	var values = 'VALUES ("'+ EncodeSessionId(id) + '","' + user + '","' + sessionTime.toString() + '");'
 
 	var query = insert + values;
+
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -579,6 +608,12 @@ function getSession(user, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -598,7 +633,17 @@ function getSession(user, callback){
 				message: result
 			});
 
-			id = result[0].sessionId;
+			console.log(result);
+
+			if(result != null || result != undefined){
+			if(result.length != 0){
+							if(result != null || result != undefined){
+								id = result[0].sessionId;
+							}else{
+								id = 'JHLUIU';
+							}
+			}
+		}
 
 			callback();
 		}

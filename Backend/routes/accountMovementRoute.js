@@ -208,6 +208,11 @@ function sendRequestToDatabase(account, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
     if(err){
       content = err;
@@ -254,6 +259,11 @@ function getSession(username, sessionId, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -273,7 +283,9 @@ function getSession(username, sessionId, callback){
 				message: result
 			});
 
-			if(time <= parseInt(result[0].expirationTime)){
+			if(result != null || result != undefined){
+				if(result.length != 0){
+								if(time <= parseInt(result[0].expirationTime)){
 				async.series([
 					function(callback) {increaseExpirationTime(username, sessionId, callback);}
 				], function(err){
@@ -295,6 +307,12 @@ function getSession(username, sessionId, callback){
 
 				callback();
 			}
+				} else {
+					callback();
+				}
+			}else{
+				callback();
+			}
 		}
 	})
 }
@@ -311,6 +329,11 @@ function increaseExpirationTime(username, sessionId, callback){
 	var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
 	var query = update + set + where;
+
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
 
 	connection.query(query, function(err, result, fields) {
 		if(err){

@@ -152,7 +152,7 @@ router.post('/', function(req, res){
 			telephonenumber: req.body.telephonenumber,
 			email: req.body.email,
 			pwd: encrypted.toString(),
-			balance: req.body.balance,
+			balance: 1000.00,
 			locked: 0,
 			reasonForLock: null
 		}
@@ -242,6 +242,11 @@ function checkForIbans(callback){
 
 	var query = select + where;
 
+    logger.log({
+    level: 'error',
+    message: 'Query sent: ' + query
+  });
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -288,6 +293,11 @@ function sendRequestToDatabase(newAccount, callback){
 
 	var query = insert + values;
 
+    logger.log({
+    level: 'error',
+    message: 'Query sent: ' + query
+  });
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -299,10 +309,16 @@ function sendRequestToDatabase(newAccount, callback){
 				errorCode: err.code,
 			}
 
-			if(err.sqlMessage.includes('PRIMARY')){
+			if(err.sqlMessage != undefined){
+							if(err.sqlMessage.includes('PRIMARY')){
 				errorBody.errorMessage = 'Es existiert ein Konto mit der IBAN-Nummer.';
+				callback();
 			} else if (err.sqlMessage.includes('username')){
-				errorBody.errorMessage = 'Es existiert ein Konto mit dem Benutzernamen.';	
+				errorBody.errorMessage = 'Es existiert ein Konto mit dem Benutzernamen.';
+				callback();	
+			}
+			} else {
+				callback();
 			}
 		} else {
 			logger.log({

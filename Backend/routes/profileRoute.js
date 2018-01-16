@@ -164,7 +164,7 @@ router.post('/', function(req, res){
 			});
 		});
 
-		if(errorBody === null && info === null){
+		if(errorBody === null && info === null && body != null){
 			var resBody = {
 				status: true,
 				iban: body.iban,
@@ -175,6 +175,20 @@ router.post('/', function(req, res){
 				telephonenumber: body.telephonenumber,
 				email: body.email,
 				balance: body.balance
+			}
+
+			res.send(resBody);
+		}else if(errorBody === null && info === null && body === null){
+			var resBody = {
+				status: true,
+				iban: 'Not There',
+				firstName: 'Not There',
+     			lastName: 'Not There', 
+				username: 'Not There',
+				address: 'Not There',
+				telephonenumber: 'Not There',
+				email: 'Not There',
+				balance: 'Not There'
 			}
 
 			res.send(resBody);
@@ -207,6 +221,11 @@ function getSession(username, sessionId, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -226,7 +245,9 @@ function getSession(username, sessionId, callback){
 				message: result
 			});
 
-			if(time <= parseInt(result[0].expirationTime)){
+			if(result != undefined && result != null){
+				if(result.length != 0){
+								if(time <= parseInt(result[0].expirationTime)){
 				async.series([
 					function(callback) {increaseExpirationTime(username, sessionId, callback);}
 				], function(err){
@@ -248,6 +269,10 @@ function getSession(username, sessionId, callback){
 
 				callback();
 			}
+				}
+			} else {
+				callback();
+			}
 		}
 	})
 }
@@ -264,6 +289,11 @@ function increaseExpirationTime(username, sessionId, callback){
 	var where = 'WHERE username="' + username + '" AND sessionId="' + sessionId + '";';
 
 	var query = update + set + where;
+
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
 
 	connection.query(query, function(err, result, fields) {
 		if(err){
@@ -296,6 +326,11 @@ function sendRequestToDatabase(username, callback){
 
 	var query = select + where;
 
+	logger.log({
+		level: 'error',
+		message: 'Query sent: ' + query
+	});
+
 	connection.query(query, function(err, result, fields) {
 		if(err){
 			logger.log({
@@ -318,6 +353,8 @@ function sendRequestToDatabase(username, callback){
 			if (result.length === 0){
 				info = 'Es gibt keinen Benutzer mit diesem Usernamen.';
 				callback();
+			// else if(){
+
 			} else {
 				body = {
 					iban: result[0].iban,
