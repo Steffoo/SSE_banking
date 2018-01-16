@@ -39,16 +39,16 @@ var connection;
 /* Configurations */
 /******************/
 router.use(bodyParser.json());
-router.use(bodyParser.urlencoded({ extended: false })); 
-
-const levels = { 
-  error: 0, 
-  warn: 1, 
-  info: 2, 
-  verbose: 3, 
-  debug: 4, 
-  silly: 5 
-} 
+router.use(bodyParser.urlencoded({ extended: false }));
+ 
+ const levels = {
+   error: 0,
+   warn: 1,
+   info: 2,
+   verbose: 3,
+   debug: 4,
+   silly: 5
+ }
 
 const logger = winston.createLogger({
 	transports: [
@@ -543,11 +543,11 @@ function renewSession(user, sessionTime, callback){
 
 // Creates a new session
 function createNewSession(user, sessionTime, callback){
-	var id = createSessionID();
-	console.log(id);
+	// var id = createSessionID();
+	// console.log(id);
 
 	var insert = 'INSERT INTO sessions (sessionId, username, expirationTime) ';
-	var values = 'VALUES ("'+ EncodeSessionId(id) + '","' + user + '","' + sessionTime.toString() + '");'
+	var values = 'VALUES ("'+ EncodeSessionId(user) + '","' + user + '","' + sessionTime.toString() + '");'
 
 	var query = insert + values;
 
